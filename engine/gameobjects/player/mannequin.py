@@ -1,5 +1,7 @@
 import math
 import numpy as np
+from typing import Optional
+from gameobjects.player.animator import Animator
 
 
 class Bone:
@@ -10,7 +12,7 @@ class Bone:
 
 
 class Skeleton:
-    def __init__(self, bones: list['Bone']):
+    def __init__(self, bones: list['Bone']): 
         self.bones = bones
         self.parents = [b.parent for b in bones]
 
@@ -34,7 +36,7 @@ class Skeleton:
             axis=0
         )
 
-    def set_rest_pose(self):
+    def set_rest_pose(self) -> None:
         """
         Initialize skeleton to rest pose (identity local transforms).
         """
@@ -50,22 +52,18 @@ class Skeleton:
         """
         for i, bone in enumerate(self.bones):
             if bone.parent >= 0:
-                self.global_matrices[i] = (
-                    self.global_matrices[bone.parent] @ self.local_matrices[i]
-                )
+                self.global_matrices[i][:] = self.global_matrices[bone.parent] @ self.local_matrices[i]
             else:
-                self.global_matrices[i] = self.local_matrices[i]
+                self.global_matrices[i][:] = self.local_matrices[i]
+            # bone.inverse_bind is stored per Bone
+            self.bone_matrices[i][:] = self.global_matrices[i] @ bone.inverse_bind
 
-            self.bone_matrices[i] = (
-                self.global_matrices[i] @ bone.inverse_bind
-            )
-
-def lerp_angle(a, b, t):
+def lerp_angle(a, b, t) -> float:
     diff = (b - a + math.pi) % (2 * math.pi) - math.pi
     return a + diff * t
 
 class Mannequin:
-    def __init__(self, player, mesh, material, foot_offset, scale, skeleton: Skeleton | None = None):
+    def __init__(self, player, mesh, material, foot_offset, scale, skeleton: Skeleton | None = Skeleton([])):
         self.player = player
         self.mesh = mesh
         self.material = material
@@ -83,6 +81,9 @@ class Mannequin:
 
         # how fast the mannequin follows the player yaw (0.1 = soft, 0.3 = snappy)
         self.yaw_follow_strength = 0.25
+        
+        # Animator (optional)
+        self.animator: Optional[Animator] = None
 
     def matrix(self):
         pos = self.player.position.copy().astype(np.float32)

@@ -15,6 +15,7 @@ from gameobjects.loader.fbx_loader import create_mannequin_from_fbx
 from gameobjects.collider.aabb import AABBCollider
 from gameobjects.object import GameObject
 from gameobjects.player.mannequin import Mannequin
+from gameobjects.player.animator import Animator
 from gameobjects.vertec import plane_vertices
 
 
@@ -23,7 +24,7 @@ from gameobjects.vertec import plane_vertices
 # ====================
 
 pygame.init()
-pygame.display.set_caption("3D Engine")
+pygame.display.set_caption("Game Engine")
 
 pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, 3)
 pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, 3)
@@ -102,7 +103,7 @@ if sun and sun.light:
 # Load mannequin (FBX)
 # ====================
 
-mesh, skeleton, material = create_mannequin_from_fbx("assets/models/Frank")
+mesh, skeleton, material, animations = create_mannequin_from_fbx("assets/models/Frank")
 
 mannequin = Mannequin(
     player=player,
@@ -115,6 +116,17 @@ mannequin = Mannequin(
 assert mannequin.mesh is not None, "Mannequin mesh not loaded"
 assert mannequin.skeleton is not None, "Mannequin skeleton not loaded"
 
+
+# ====================
+# Animator
+# ====================
+
+assert animations, "No animations loaded from FBX"
+
+# Nimm die erste Animation (z. B. Walk / Take 001)
+anim_clip = list(animations.values())[0]
+
+mannequin.animator = Animator(skeleton=mannequin.skeleton, clip=anim_clip, loop=True)
 
 # ====================
 # Scene object list
@@ -169,6 +181,12 @@ while running:
     player.prev_position = player.position.copy()
     player.process_keyboard(actions, dt)
     physics.step(dt, player)
+
+    # -------------
+    # update mannequin
+    # -------------
+    # if mannequin.animator is not None:
+    #     mannequin.animator.update(dt)w
 
     # -------------
     # Render passes

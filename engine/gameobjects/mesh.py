@@ -1,7 +1,7 @@
 import numpy as np
 import ctypes
 from OpenGL import GL
-from gameobjects.vertec import cube_vertices, sphere_vertices
+from gameobjects.vertec import cube_vertices, sphere_vertices, cylinder_vertices
 
 
 class Mesh:
@@ -163,5 +163,7 @@ class MeshRegistry:
             return Mesh(cube_vertices)
         elif name == "sphere":
             return Mesh(sphere_vertices)
+        elif name == "cylinder":
+            return Mesh(cylinder_vertices)
         else:
             raise ValueError(f"Unknown mesh asset: {name}")

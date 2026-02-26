@@ -5,48 +5,19 @@ from pathlib import Path
 from gameobjects.mesh import Mesh
 from gameobjects.material_lookup import Material
 from gameobjects.texture import Texture
+from gameobjects.player.animation import AnimationClip, Keyframe, AnimationTrack
+from gameobjects.player.mannequin import Bone, Skeleton
 
-
-class Skeleton:
-    def __init__(self, parents, inverse_bind):
-        self.parents = parents              # (B,)
-        self.inverse_bind = inverse_bind    # (B,4,4)
-        self.num_bones = len(parents)
-
-
-# === Bone matrix computation (bind pose, CPU side) ===
-def compute_bone_matrices(skeleton: 'Skeleton') -> np.ndarray:
-    """
-    Compute final bone matrices in bind pose.
-    Returns: (B,4,4) float32 array
-    """
-    B = skeleton.num_bones
-
-    # Global pose (identity for now)
-    global_pose = np.zeros((B, 4, 4), dtype=np.float32)
-    for i in range(B):
-        global_pose[i] = np.eye(4, dtype=np.float32)
-
-    # Apply hierarchy (parent * local)
-    for i in range(B):
-        p = skeleton.parents[i]
-        if p >= 0:
-            global_pose[i] = global_pose[p] @ global_pose[i]
-
-    # Final skinning matrices
-    final_mats = np.zeros_like(global_pose)
-    for i in range(B):
-        final_mats[i] = global_pose[i] @ skeleton.inverse_bind[i]
-
-    return final_mats
-
+# ------------------------------
+# FBX Loader
+# ------------------------------
 
 class FBXAsset:
-    def __init__(self, mesh, skeleton, textures):
+    def __init__(self, mesh, bones, textures, animations):
         self.mesh = mesh
-        self.skeleton = skeleton
+        self.bones = bones              # raw bone data
         self.textures = textures
-        self.bone_matrices = compute_bone_matrices(skeleton)
+        self.animations = animations
 
 
 def load_fbx_asset(base_path: str) -> FBXAsset:
@@ -89,26 +60,20 @@ def load_fbx_asset(base_path: str) -> FBXAsset:
     )
 
     # ------------------------------
-    # Load skeleton
+    # Load skeleton as raw bones
     # ------------------------------
     with open(skel_path, "r") as f:
         skel_json = json.load(f)
 
-    bones = skel_json["bones"]
-    num_bones = len(bones)
-
-    parents = np.full(num_bones, -1, dtype=np.int32)
-    inverse_bind = np.zeros((num_bones, 4, 4), dtype=np.float32)
-
-    for i, b in enumerate(bones):
-        parent = b["parent"]
-        if parent >= 0:
-            parents[i] = parent
-        inverse_bind[i] = np.array(
-            b["inverse_bind"], dtype=np.float32
-        ).reshape(4, 4)
-
-    skeleton = Skeleton(parents, inverse_bind)
+    bones = []
+    for b in skel_json["bones"]:
+        bones.append({
+            "name": b["name"],
+            "parent": b["parent"],
+            "inverse_bind": np.array(
+                b["inverse_bind"], dtype=np.float32
+            ).reshape(4, 4),
+        })
 
     # ------------------------------
     # Load textures
@@ -118,11 +83,60 @@ def load_fbx_asset(base_path: str) -> FBXAsset:
         with open(tex_path, "r") as f:
             textures = json.load(f)
 
-    return FBXAsset(mesh=mesh, skeleton=skeleton, textures=textures)
+    # ------------------------------
+    # Load animations (*.anim.json)
+    # ------------------------------
+    animations = {}
+
+    for anim_path in base.glob("anim.json"):
+        with open(anim_path, "r") as f:
+            anim_json = json.load(f)
+
+        tracks = {}
+        for bone_name, frames in anim_json.get("tracks", {}).items():
+            keyframes = []
+            for k in frames:
+                keyframes.append(
+                    Keyframe(
+                        time=k["time"],
+                        translation=np.array(k.get("t", [0, 0, 0]), dtype=np.float32),
+                        rotation=np.array(k.get("r", [0, 0, 0, 1]), dtype=np.float32),
+                    )
+                )
+            tracks[bone_name] = keyframes
+
+        clip = AnimationClip(
+            name=anim_json.get("name", anim_path.stem),
+            duration=anim_json["duration"],
+            fps=anim_json.get("fps", 30),
+            tracks=tracks,
+        )
+
+        animations[clip.name] = clip
+
+    return FBXAsset(
+        mesh=mesh,
+        bones=bones,
+        textures=textures,
+        animations=animations,
+    )
 
 
 def create_mannequin_from_fbx(base_path: str):
+
     asset = load_fbx_asset(base_path)
+
+    bones = []
+    for b in asset.bones:
+        bones.append(
+            Bone(
+                name=b["name"],
+                parent=b["parent"],
+                inverse_bind=b["inverse_bind"],
+            )
+        )
+
+    skeleton = Skeleton(bones)
 
     material = Material(color=(1.0, 1.0, 1.0))
     albedo_path = "assets/skins/mannequin_albedo.png"
@@ -130,7 +144,4 @@ def create_mannequin_from_fbx(base_path: str):
     if albedo_path:
         material.texture = Texture.load_texture(albedo_path)
 
-    return asset.mesh, asset.skeleton, material
-
-def update_bone_matrices(asset: FBXAsset):
-    asset.bone_matrices = compute_bone_matrices(asset.skeleton)
+    return asset.mesh, skeleton, material, asset.animations

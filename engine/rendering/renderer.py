@@ -1205,6 +1205,8 @@ class Renderer:
         GL.glDisable(GL.GL_BLEND)
         GL.glDisable(GL.GL_CULL_FACE)
 
+        GL.glUseProgram(self.final_program)  # ❗ FEHLTE
+
         # Mannequin wird aktuell NICHT geskinnt
         GL.glUniform1i(self.final_is_skinned_loc, 0)
 
@@ -1216,6 +1218,16 @@ class Renderer:
             self.final_object_color_loc,
             *mannequin.material.color
         )
+        
+         # --- BONES ---
+        bones = mannequin.skeleton.bone_matrices
+        GL.glUniformMatrix4fv(
+            self.final_bones_loc,
+            bones.shape[0],
+            GL.GL_FALSE,
+            bones
+        )
+
 
         if mannequin.material.texture is not None:
             GL.glActiveTexture(GL.GL_TEXTURE3)
@@ -1239,7 +1251,7 @@ class Renderer:
             self.final_shininess_loc,
             mannequin.material.shininess
         )
-
+        print("Bone[0] matrix:\n", mannequin.skeleton.bone_matrices[0])
         mannequin.mesh.draw()
 
         GL.glEnable(GL.GL_CULL_FACE)
