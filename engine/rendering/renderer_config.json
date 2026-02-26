@@ -10,8 +10,11 @@
     "bias": 0.025
   }, 
   "shadow": {
-    "resolution": 1024,
+    "resolution": 2048,
     "near_plane": 0.1,
-    "far_plane": 25.0
+    "far_plane": 25.0,
+    "soft_shadows": true,
+    "pcf_samples": 16,
+    "pcf_radius": 0.03
     }
 }

@@ -48,6 +48,17 @@
       "mesh": "cube",
       "material": {
         "name": "marble",
+        "texture_scale_mode": "triplanar",
+        "texture_scale_value": 1.0
+      },
+      "position": [-1, 6, 3],
+      "scale": [1, 1, 1],
+      "collider": [1, 1, 1]
+    },
+    {
+      "mesh": "cube",
+      "material": {
+        "name": "marble",
         "texture_scale_mode": "default",
         "texture_scale_value": 1.0,
         "shininess": 64.0,

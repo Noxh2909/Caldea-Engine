@@ -875,7 +875,10 @@ class Renderer:
         self.final_object_color_loc = GL.glGetUniformLocation(self.final_program, "objectColor")
         self.final_reflection_vp_loc = GL.glGetUniformLocation(self.final_program, "reflectionViewProj")
         self.final_bones_loc = GL.glGetUniformLocation(self.final_program, "u_bones")
-            
+        self.final_soft_shadows_loc = GL.glGetUniformLocation(self.final_program, "u_softShadows")
+        self.final_pcf_samples_loc = GL.glGetUniformLocation(self.final_program, "u_pcfSamples")
+        self.final_pcf_radius_loc = GL.glGetUniformLocation(self.final_program, "u_pcfRadius")
+                    
     # -----------------------
     # Shadow mapping
     # -----------------------
@@ -1316,7 +1319,22 @@ class Renderer:
             GL.glGetUniformLocation(self.final_program, "far_plane"),
             self.shadow_cfg.get("far_plane")
         )
-
+        
+        # -----------------------
+        # Shadow mapping uniforms
+        # -----------------------
+        GL.glUniform1i(
+            self.final_soft_shadows_loc, 1 if self.shadow_cfg.get("soft_shadows") else 0
+        )
+        
+        GL.glUniform1i(
+            self.final_pcf_samples_loc, self.shadow_cfg.get("pcf_samples")
+        )
+        
+        GL.glUniform1f(
+            self.final_pcf_radius_loc, self.shadow_cfg.get("pcf_radius")
+        )
+       
         # -----------------------
         # Bind textures
         # -----------------------
