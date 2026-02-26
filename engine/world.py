@@ -36,6 +36,7 @@ class World:
         position = data.get("position", [0, 0, 0])
         scale = data.get("scale", [1, 1, 1])
         transform = Transform(position=position, scale=scale)
+        transform.position[1] += transform.scale[1] * 0.5 
 
         # ---------- mesh ----------
         mesh = None

@@ -4,40 +4,33 @@
       "mesh": "cube",
       "material": {
         "name": "wood",
-        "texture_scale_mode": "triplanar"
+        "texture_scale_mode": "triplanar",
+        "texture_scale_value": 0.1
       },
-      "position": [4, 1, 3],
-      "scale": [0.5, 18, 10],
+      "position": [4, 0, 3],
+      "scale": [0.5, 10, 10],
       "collider": [1, 1, 1]
     },
     {
       "mesh": "cube",
       "material": {
         "name": "wood",
-        "texture_scale_mode": "triplanar"
+        "texture_scale_mode": "triplanar",
+        "texture_scale_value": 0.1
       },
-      "position": [-6, 1, 3],
-      "scale": [0.5, 18, 10],
+      "position": [-6, 0, 3],
+      "scale": [0.5, 10, 10],
       "collider": [1, 1, 1]
     },
     {
       "mesh": "cube",
       "material": {
         "name": "wood",
-        "texture_scale_mode": "triplanar"
+        "texture_scale_mode": "triplanar",
+        "texture_scale_value": 0.1
       },
-      "position": [-1, 1, 8],
-      "scale": [10, 18, 0.5],
-      "collider": [1, 1, 1]
-    },
-    {
-      "mesh": "cube",
-      "material": {
-        "name": "marble",
-        "texture_scale_mode": "default"
-      },
-      "position": [-1, 10, 3],
-      "scale": [10, 0.5, 10],
+      "position": [-1, 0, 8],
+      "scale": [10, 10, 0.5],
       "collider": [1, 1, 1]
     },
     {
@@ -45,12 +38,35 @@
       "material": {
         "name": "marble",
         "texture_scale_mode": "default",
+        "texture_scale_value": 1.0
+      },
+      "position": [-1, 9.5, 3],
+      "scale": [10, 0.5, 10],
+      "collider": [1, 1, 1]
+    },
+    {
+      "mesh": "cube",
+      "material": {
+        "name": "marble",
+        "texture_scale_mode": "triplanar",
+        "texture_scale_value": 1.0
+      },
+      "position": [-1, 6, 3],
+      "scale": [1, 1, 1],
+      "collider": [1, 1, 1]
+    },
+    {
+      "mesh": "cube",
+      "material": {
+        "name": "marble",
+        "texture_scale_mode": "default",
+        "texture_scale_value": 1.0,
         "shininess": 64.0,
         "specular_strength": 0.9
       },
       "position": [-1, 0, 3],
       "scale": [10, 0.5, 10],
-      "collider": [1, 1, 1]
+      "collider": [1, 1.5, 1]
     },
     {
       "mesh": "sphere",

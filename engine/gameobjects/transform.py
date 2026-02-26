@@ -1,33 +1,29 @@
 import numpy as np
 
-
 class Transform:
     def __init__(self, position=(0, 0, 0), scale=(1, 1, 1), yaw=0.0):
-        """
-        Docstring für __init__
-
-        :param self: The object itself
-        :param position: The position of the transform
-        :param scale: The scale of the transform
-        :param yaw: The yaw (rotation around the y-axis) of the transform
-        """
         self.position = np.array(position, dtype=np.float32)
         self.scale = np.array(scale, dtype=np.float32)
         self.yaw = yaw
 
     def matrix(self):
-        """
-        Docstring für matrix
-
-        :param self: The object itself
-        """
         m = np.identity(4, dtype=np.float32)
 
-        # Scale
-        m[0, 0] = self.scale[0]
-        m[1, 1] = self.scale[1]
-        m[2, 2] = self.scale[2]
+        # Rotation aus yaw (NICHT auf bestehende Matrix!)
+        c = np.cos(self.yaw)
+        s = np.sin(self.yaw)
 
-        # Translation
+        rot = np.array([
+            [ c, 0, s, 0],
+            [ 0, 1, 0, 0],
+            [-s, 0, c, 0],
+            [ 0, 0, 0, 1],
+        ], dtype=np.float32)
+
+        # Scale
+        scale = np.diag([self.scale[0], self.scale[1], self.scale[2], 1.0])
+
+        # Combine cleanly
+        m = rot @ scale
         m[:3, 3] = self.position
         return m

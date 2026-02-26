@@ -10,6 +10,9 @@ uniform vec3 objectColor;
 uniform sampler2D u_texture;
 uniform bool u_use_texture;
 uniform bool u_is_emissive;
+uniform bool u_softShadows;
+uniform int u_pcfSamples;
+uniform float u_pcfRadius;
 uniform int u_texture_mode; // 0 = UV, 1 = triplanar
 uniform float u_lightIntensity;
 uniform float u_ambientStrength;
@@ -36,8 +39,11 @@ float ShadowCalculation(vec3 fragPos)
 
     // simple PCF over cubemap
     float shadow = 0.0;
-    int samples = 20;
-    float diskRadius = 0.25;
+    int samples = u_pcfSamples;
+    float diskRadius = u_pcfRadius;
+
+    if (samples <= 0)
+        return 0.0;
 
     for (int i = 0; i < samples; ++i)
     {

@@ -1,16 +1,71 @@
 import numpy as np
 import ctypes
 from OpenGL import GL
-from gameobjects.vertec import cube_vertices, sphere_vertices
+from gameobjects.vertec import cube_vertices, sphere_vertices, cylinder_vertices
 
 
 class Mesh:
-    def __init__(self, vertices: np.ndarray, indices: np.ndarray | None = None):
+    def __init__(
+        self,
+        vertices: np.ndarray | None = None,
+        indices: np.ndarray | None = None,
+        *,
+        positions: np.ndarray | None = None,
+        normals: np.ndarray | None = None,
+        uvs: np.ndarray | None = None,
+        bone_ids: np.ndarray | None = None,
+        bone_weights: np.ndarray | None = None,
+    ):
         """
         vertices: interleaved array [pos(3), normal(3), uv(2)]
         indices: optional index buffer (uint32)
         """
-        self.vertex_count = len(vertices) // 8
+        # --- Build interleaved vertex buffer ---
+        if vertices is None:
+            assert positions is not None and normals is not None and uvs is not None, \
+                "positions, normals and uvs are required"
+
+            assert positions.shape[0] == normals.shape[0] == uvs.shape[0], \
+                "positions/normals/uvs vertex count mismatch"
+
+            vcount = positions.shape[0]
+
+            # Decide layout: static (8 floats) or skinned (8 floats + 4 u16 + 4 floats)
+            is_skinned = bone_ids is not None and bone_weights is not None
+
+            if is_skinned:
+                assert bone_ids is not None and bone_weights is not None
+                assert bone_ids.shape == (vcount, 4)
+                assert bone_weights.shape == (vcount, 4)
+
+                # positions(3) normals(3) uvs(2) weights(4)
+                vertices = np.zeros((vcount, 12), dtype=np.float32)
+                vertices[:, 0:3]  = positions
+                vertices[:, 3:6]  = normals
+                vertices[:, 6:8]  = uvs
+                vertices[:, 8:12] = bone_weights
+
+                # bone IDs stored separately (uint16)
+                self.bone_ids = bone_ids.astype(np.uint16)
+                self.bone_weights = bone_weights.astype(np.float32)
+            else:
+                vertices = np.zeros((vcount, 8), dtype=np.float32)
+                vertices[:, 0:3] = positions
+                vertices[:, 3:6] = normals
+                vertices[:, 6:8] = uvs
+
+                self.bone_ids = None
+                self.bone_weights = None
+
+            vertices = vertices.reshape(-1)
+            self.is_skinned = is_skinned
+        else:
+            self.bone_ids = None
+            self.bone_weights = None
+            self.is_skinned = False
+
+        stride_floats = 12 if self.is_skinned else 8
+        self.vertex_count = vertices.size // stride_floats
         self.index_count = len(indices) if indices is not None else 0
         self.has_indices = indices is not None
 
@@ -33,7 +88,7 @@ class Mesh:
                 GL.GL_STATIC_DRAW,
             )
 
-        stride = 8 * 4  # 8 floats * 4 bytes
+        stride = (12 if self.is_skinned else 8) * 4
 
         # position (location = 0)
         GL.glEnableVertexAttribArray(0)
@@ -46,6 +101,28 @@ class Mesh:
         # uv (location = 2)
         GL.glEnableVertexAttribArray(2)
         GL.glVertexAttribPointer(2, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(6 * 4))
+
+        if self.is_skinned and self.bone_ids is not None:
+            # bone IDs (location = 3) -- integer attribute
+            self.bone_vbo = GL.glGenBuffers(1)
+            GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.bone_vbo)
+            GL.glBufferData(
+                GL.GL_ARRAY_BUFFER,
+                self.bone_ids.nbytes,
+                self.bone_ids,
+                GL.GL_STATIC_DRAW,
+            )
+
+            GL.glEnableVertexAttribArray(3)
+            GL.glVertexAttribIPointer(
+                3, 4, GL.GL_UNSIGNED_SHORT, 0, ctypes.c_void_p(0)
+            )
+
+            # bone weights (location = 4)
+            GL.glEnableVertexAttribArray(4)
+            GL.glVertexAttribPointer(
+                4, 4, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(8 * 4)
+            )
 
         GL.glBindVertexArray(0)
 
@@ -86,5 +163,7 @@ class MeshRegistry:
             return Mesh(cube_vertices)
         elif name == "sphere":
             return Mesh(sphere_vertices)
+        elif name == "cylinder":
+            return Mesh(cylinder_vertices)
         else:
             raise ValueError(f"Unknown mesh asset: {name}")

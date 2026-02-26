@@ -10,9 +10,12 @@ class Camera:
         self.physics_world = physics_world
         self.fov = fov
 
+        # Eye height as a fraction of player height (single source of truth)
+        self.eye_height_factor = 0.4
+
         # First-person settings
-        self.fps_forward_offset = 0.40
-        self.fps_eye_vertical_bias = 0.10
+        self.fps_forward_offset = 0.45
+        self.fps_eye_vertical_bias = 0.30
 
         # Third-person settings
         self.third_person = False
@@ -24,9 +27,10 @@ class Camera:
         if not self.third_person:
             # -------- First Person --------
             eye = self.player.position.copy()
-            eye[1] += self.player.height + self.player._headbob_offset
 
-            # postion eye slightly higher then head
+            # move from capsule center to eye height
+            eye[1] += self.player.height * self.eye_height_factor
+            eye[1] += self.player._headbob_offset
             eye[1] += self.fps_eye_vertical_bias
 
             # offset prevents clipping through mannequin head
@@ -37,7 +41,7 @@ class Camera:
         else:
             # -------- Third Person (collision aware) --------
             target = self.player.position.copy()
-            target[1] += self.player.height * 0.8
+            target[1] += self.player.height * self.eye_height_factor
 
             # desired camera position behind the player
             desired_eye = (
@@ -53,7 +57,7 @@ class Camera:
 
             if hit is not None:
                 # pull camera closer to avoid clipping into geometry
-                eye = hit + self.player.front * [self.collision_padding + 0.1]
+                eye = hit + self.player.front * (self.collision_padding + 0.1)
             else:
                 eye = desired_eye
 
