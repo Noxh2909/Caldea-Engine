@@ -174,7 +174,10 @@ SSAO_VERTEX_SHADER_SRC = load_shader("engine/rendering/shader/ssao.vert")
 SSAO_FRAGMENT_SHADER_SRC = load_shader("engine/rendering/shader/ssao.frag")
 SSAO_BLUR_FRAGMENT_SHADER_SRC = load_shader("engine/rendering/shader/ssao_blur.frag")
 
-# BLUR Shader 
+# VOLUMETRIC LIGHTING Shader
+VOLUMETRIC_LIGHT_FRAGMENT_SHADER_SRC = load_shader("engine/rendering/shader/volumetric.frag")
+
+# BLOOM Shader 
 BLOOM_BLUR_FRAGMENT_SHADER_SRC = load_shader("engine/rendering/shader/bloom_blur.frag")
 BLOOM_BRIGHT_FRAGMENT_SHADER_SRC = load_shader("engine/rendering/shader/bloom_bright.frag")
 BLOOM_FINAL_FRAGMENT_SHADER_SRC = load_shader("engine/rendering/shader/bloom_final.frag")
@@ -329,10 +332,13 @@ class Renderer:
         self.bloom_final_program = link_program(
             SSAO_VERTEX_SHADER_SRC, BLOOM_FINAL_FRAGMENT_SHADER_SRC
         )
+        self.volumetric_program = link_program(
+            SSAO_VERTEX_SHADER_SRC, VOLUMETRIC_LIGHT_FRAGMENT_SHADER_SRC
+        )
         self.final_program = link_program(
             FINAL_VERTEX_SHADER_SRC, FINAL_FRAGMENT_SHADER_SRC
         )
-
+        
     # -----------------------
     # Debug HUD Initialization
     # -----------------------
@@ -591,13 +597,14 @@ class Renderer:
     def create_hdr_bloom_buffers(self):
         """
         Create framebuffers and textures needed for HDR rendering and bloom effect.
-        
-        :param self: Beschreibung
         """
-        # HDR FBO
+        # =========================
+        # HDR FBO (Color + Depth Texture)
+        # =========================
         self.hdr_fbo = GL.glGenFramebuffers(1)
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.hdr_fbo)
 
+        # HDR color texture
         self.hdr_color = GL.glGenTextures(1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.hdr_color)
         GL.glTexImage2D(
@@ -607,24 +614,63 @@ class Renderer:
         )
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-
-        self.hdr_rbo = GL.glGenRenderbuffers(1)
-        GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, self.hdr_rbo)
-        GL.glRenderbufferStorage(
-            GL.GL_RENDERBUFFER, GL.GL_DEPTH_COMPONENT24,
-            self.width, self.height
-        )
-
         GL.glFramebufferTexture2D(
             GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0,
             GL.GL_TEXTURE_2D, self.hdr_color, 0
         )
-        GL.glFramebufferRenderbuffer(
+
+        # Depth texture (IMPORTANT for volumetric lighting)
+        self.hdr_depth = GL.glGenTextures(1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.hdr_depth)
+        GL.glTexImage2D(
+            GL.GL_TEXTURE_2D, 0, GL.GL_DEPTH_COMPONENT24,
+            self.width, self.height, 0,
+            GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, None
+        )
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
+        GL.glFramebufferTexture2D(
             GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT,
-            GL.GL_RENDERBUFFER, self.hdr_rbo
+            GL.GL_TEXTURE_2D, self.hdr_depth, 0
         )
 
-        # Ping-pong blur buffers
+        if GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) != GL.GL_FRAMEBUFFER_COMPLETE:
+            raise RuntimeError("HDR Framebuffer not complete")
+
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+
+        # =========================
+        # Volumetric Lighting FBO
+        # =========================
+        self.volumetric_fbo = GL.glGenFramebuffers(1)
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.volumetric_fbo)
+
+        self.volumetric_tex = GL.glGenTextures(1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.volumetric_tex)
+        GL.glTexImage2D(
+            GL.GL_TEXTURE_2D, 0, GL.GL_RGBA16F,
+            self.width, self.height, 0,
+            GL.GL_RGBA, GL.GL_FLOAT, None
+        )
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+
+        GL.glFramebufferTexture2D(
+            GL.GL_FRAMEBUFFER,
+            GL.GL_COLOR_ATTACHMENT0,
+            GL.GL_TEXTURE_2D,
+            self.volumetric_tex,
+            0
+        )
+
+        if GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) != GL.GL_FRAMEBUFFER_COMPLETE:
+            raise RuntimeError("Volumetric Framebuffer not complete")
+
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+
+        # =========================
+        # Bloom Ping-Pong Buffers
+        # =========================
         self.blur_fbo = GL.glGenFramebuffers(2)
         self.blur_tex = GL.glGenTextures(2)
 
@@ -643,7 +689,10 @@ class Renderer:
                 GL.GL_TEXTURE_2D, self.blur_tex[i], 0
             )
 
-            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+            if GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) != GL.GL_FRAMEBUFFER_COMPLETE:
+                raise RuntimeError("Bloom Framebuffer not complete")
+
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
     
     # -----------------------
     # SSAO Buffer Creation
@@ -1182,14 +1231,89 @@ class Renderer:
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, final_blur_tex)
         GL.glUniform1i(GL.glGetUniformLocation(self.bloom_final_program, "bloomBlur"), 1)
+        
+        GL.glActiveTexture(GL.GL_TEXTURE2)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.volumetric_tex)
+        GL.glUniform1i(GL.glGetUniformLocation(self.bloom_final_program, "volumetricTex"), 2)
+
+        GL.glUniform1f(GL.glGetUniformLocation(self.bloom_final_program, "bloomIntensity"),intensity)
+
+        GL.glBindVertexArray(self.quad_vao)
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
+        
+    # -----------------
+    # Render Volumetric Lighting
+    # -----------------
+    # This pass renders volumetric lighting effects, such as light shafts or god rays.
+    # It uses the depth information from the HDR pass to create light scattering effects.
+    # -----------------
+    
+    def render_volumetric_pass(self, camera):
+
+        if not self.shadow_cfg.get("volumetric", {}).get("enabled", False):
+            return
+
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.volumetric_fbo)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+
+        GL.glUseProgram(self.volumetric_program)
+
+        cfg = self.shadow_cfg.get("volumetric")
+
+        GL.glUniform1i(GL.glGetUniformLocation(self.volumetric_program, "u_samples"), cfg.get("samples"))
+        GL.glUniform1f(GL.glGetUniformLocation(self.volumetric_program, "u_density"), cfg.get("density"))
+        GL.glUniform1f(GL.glGetUniformLocation(self.volumetric_program, "u_decay"), cfg.get("decay"))
+        GL.glUniform1f(GL.glGetUniformLocation(self.volumetric_program, "u_weight"), cfg.get("weight"))
+        GL.glUniform1f(GL.glGetUniformLocation(self.volumetric_program, "u_exposure"), cfg.get("exposure"))
+
+        GL.glUniform3fv(
+            GL.glGetUniformLocation(self.volumetric_program, "lightPos"),
+            1,
+            self.light_pos
+        )
+
+        GL.glUniformMatrix4fv(
+            GL.glGetUniformLocation(self.volumetric_program, "projection"),
+            1, GL.GL_TRUE, self.projection
+        )
+
+        GL.glUniformMatrix4fv(
+            GL.glGetUniformLocation(self.volumetric_program, "view"),
+            1, GL.GL_TRUE, camera.get_view_matrix()
+        )
+
+        # Use actual camera world position (from player) 
+        GL.glUniform3fv(
+            GL.glGetUniformLocation(self.volumetric_program, "viewPos"),
+            1,
+            camera.player.position
+        )
 
         GL.glUniform1f(
-            GL.glGetUniformLocation(self.bloom_final_program, "bloomIntensity"),
-            intensity
+            GL.glGetUniformLocation(self.volumetric_program, "far_plane"),
+            self.shadow_cfg.get("far_plane")
+        )
+
+        # --- Bind depth cubemap as depthMap at texture unit 0 ---
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, self.depth_texture)
+        GL.glUniform1i(
+            GL.glGetUniformLocation(self.volumetric_program, "depthMap"),
+            0
+        )
+
+        # --- Bind scene depth texture for geometry ray stop ---
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.hdr_depth)
+        GL.glUniform1i(
+            GL.glGetUniformLocation(self.volumetric_program, "sceneDepth"),
+            1
         )
 
         GL.glBindVertexArray(self.quad_vao)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
+
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
         
     # ---------------- 
     # Render Mannequin 
@@ -1208,7 +1332,7 @@ class Renderer:
         GL.glDisable(GL.GL_BLEND)
         GL.glDisable(GL.GL_CULL_FACE)
 
-        GL.glUseProgram(self.final_program)  # ❗ FEHLTE
+        GL.glUseProgram(self.final_program) 
 
         # Mannequin wird aktuell NICHT geskinnt
         GL.glUniform1i(self.final_is_skinned_loc, 0)

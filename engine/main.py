@@ -205,6 +205,9 @@ while running:
     # Debug grid
     renderer.draw_debug_grid(camera, WIDTH / HEIGHT, size=50.0)
 
+    #volumetric light pass
+    renderer.render_volumetric_pass(camera)
+    
     # Bloom pass
     renderer.render_bloom_pass()
 
