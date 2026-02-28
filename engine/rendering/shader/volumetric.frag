@@ -80,7 +80,7 @@ void main()
         if(currentDepth - shadowBias < closestDepth)
             visibility = 1.0;
 
-        float attenuation = 1.0 / (1.0 + 0.09 * currentDepth + 0.032 * currentDepth * currentDepth);
+        float attenuation = 1.0 / (1.0 + 0.25 * currentDepth + 0.12 * currentDepth * currentDepth);
 
         illumination += visibility * attenuation * decay * u_weight;
 
@@ -91,7 +91,12 @@ void main()
 
     // small base fog so VL never fully disappears
     float baseFog = 0.02;
-    intensity = baseFog + pow(intensity, 1.4);
+
+    // softer contrast curve
+    intensity = baseFog + pow(intensity, 1.1);
+
+    // prevent overexposure near light source
+    intensity = min(intensity, 1.1);
 
     FragColor = vec4(vec3(intensity), 1.0);
 }
