@@ -60,7 +60,7 @@ world = World("engine/world_gen.json")
 # ====================
 # Static Plane
 # ====================
-
+ 
 # Create Physics Plane
 plane_game_object = GameObject(
     mesh=None,
@@ -194,13 +194,13 @@ while running:
     light_space_matrix = renderer.point_light_matrices()
 
     # Shadow pass
-    renderer.render_shadow_pass(scene_objects, avatars=[mannequin])
+    renderer.render_shadow_pass(scene_objects, avatars=[])
 
     # SSAO pass
     renderer.render_ssao_pass(camera, scene_objects)
 
     # Final lighting pass
-    renderer.render_final_pass(mannequin, player, camera, scene_objects)
+    renderer.render_final_pass(None, player, camera, scene_objects)
 
     # Debug grid
     renderer.draw_debug_grid(camera, WIDTH / HEIGHT, size=50.0)
