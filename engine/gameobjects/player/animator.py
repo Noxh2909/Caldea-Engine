@@ -50,12 +50,12 @@ class Animator:
         self.duration = clip.duration
 
         # Debug (nur einmal ausgeben)
-        print("[Animator] Init")
-        print("  Bones:", len(self.skeleton.bones))
-        print("  Tracks:", len(self.clip.tracks))
-        print("  Track names:")
-        for k in self.clip.tracks.keys():
-            print("   -", k)
+        # print("[Animator] Init")
+        # print("  Bones:", len(self.skeleton.bones))
+        # print("  Tracks:", len(self.clip.tracks))
+        # print("  Track names:")
+        # for k in self.clip.tracks.keys():
+        #     print("   -", k)
 
     def update(self, dt: float):
         if not self.clip:

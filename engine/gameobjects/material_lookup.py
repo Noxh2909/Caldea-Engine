@@ -34,6 +34,9 @@ MATERIAL_TABLE = {
     "elian": lambda: Material(
         texture=Texture.load_texture(os.path.join(texture_dir, "elian.jpeg"))
     ),
+    "sound": lambda: Material(
+        texture=Texture.load_texture(os.path.join(texture_dir, "sound.png"))
+    ),
     "sun": lambda: Material(color=(255, 255, 255), emissive=True),
     "white": lambda: Material(color=(1.0, 1.0, 1.0)),
 }
