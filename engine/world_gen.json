@@ -81,9 +81,9 @@
       "scale": [0.5, 0.5, 0.5],
       "collider": [0, 0, 0],
       "audio": {
-        "path": "piano_ambient_mono.wav",
+        "path": "gregorian_chant_mono.wav",
         "loop": true,
-        "volume": 80.0,
+        "volume": 70.0,
         "max_distance": 40.0,
         "rolloff": 1.5,
         "fade_ratio": 0.5
