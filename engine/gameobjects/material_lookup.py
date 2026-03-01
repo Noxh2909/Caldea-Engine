@@ -13,32 +13,32 @@ MATERIAL_TABLE = {
     "wood": lambda: Material(
         texture=Texture.load_texture(os.path.join(texture_dir, "wood_wall.jpg"))
     ),
-    "brick": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "brick_wall.jpg"))
-    ),
     "marble": lambda: Material(
         texture=Texture.load_texture(os.path.join(texture_dir, "marble_floor.jpg"))
     ),
-    "ocean": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "ocean.jpg"))
-    ),
-    "metal": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "metal.png"))
-    ),
     "yasu": lambda: Material(
         texture=Texture.load_texture(os.path.join(texture_dir, "yasu.jpeg"))
-    ),
-    "js": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "js.jpeg"))
-    ),
-    "elian": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "elian.jpeg"))
     ),
     "sound": lambda: Material(
         texture=Texture.load_texture(os.path.join(texture_dir, "sound.png"))
     ),
     "jukebox": lambda: Material(
         texture=Texture.load_texture(os.path.join(texture_dir, "jukebox.png"))
+    ),
+    "laminate": lambda: Material(
+        texture=Texture.load_texture(os.path.join(texture_dir, "laminate.png"))
+    ),
+    "wallpaper": lambda: Material(
+        texture=Texture.load_texture(os.path.join(texture_dir, "wallpaper.png"))
+    ),
+    "stone": lambda: Material(
+        texture=Texture.load_texture(os.path.join(texture_dir, "stone.png"))
+    ),
+    "monalisa": lambda: Material(
+        texture=Texture.load_texture(os.path.join(texture_dir, "monalisa.png"))
+    ),
+    "wavewall": lambda: Material(
+        texture=Texture.load_texture(os.path.join(texture_dir, "wavewall.png"))
     ),
     "sun": lambda: Material(color=(255, 255, 255), emissive=True),
     "white": lambda: Material(color=(1.0, 1.0, 1.0)),

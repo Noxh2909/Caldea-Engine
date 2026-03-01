@@ -36,13 +36,13 @@
      {
       "mesh": "cube",
       "material": {
-        "name": "yasu",
+        "name": "monalisa",
         "texture_scale_mode": "default",
-        "texture_scale_value": 0.1,
+        "texture_scale_value": 0.2,
         "shininess": 0.0,
         "specular_strength": 0.0
       },
-      "position": [-1, 4, 7.7],
+      "position": [-1, 4, 7.75],
       "scale": [3, 3, 0.01],
       "collider": [1, 1, 1]
     },
@@ -97,7 +97,7 @@
         "shininess": 0.0,
         "specular_strength": 0.0
       },
-      "position": [-1, 8, 3],
+      "position": [-1, 2.3, 7],
       "scale": [1.0, 1.0, 1.0],
       "light": {
         "ambient_strength": 0.08,
