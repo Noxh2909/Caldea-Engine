@@ -73,12 +73,12 @@
     {
       "mesh": "cube",
       "material": {
-        "name": "sound",
+        "name": "jukebox",
         "texture_scale_mode": "default",
         "texture_scale_value": 1.0
       },
-      "position": [-1, 3, 7.3],
-      "scale": [0.5, 0.5, 0.5],
+      "position": [-1, 0.6, 6.9],
+      "scale": [1.6, 1.6, 1.6],
       "collider": [0, 0, 0],
       "audio": {
         "path": "gregorian_chant_mono.wav",

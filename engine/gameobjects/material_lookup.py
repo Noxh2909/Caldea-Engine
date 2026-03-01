@@ -37,6 +37,9 @@ MATERIAL_TABLE = {
     "sound": lambda: Material(
         texture=Texture.load_texture(os.path.join(texture_dir, "sound.png"))
     ),
+    "jukebox": lambda: Material(
+        texture=Texture.load_texture(os.path.join(texture_dir, "jukebox.png"))
+    ),
     "sun": lambda: Material(color=(255, 255, 255), emissive=True),
     "white": lambda: Material(color=(1.0, 1.0, 1.0)),
 }
