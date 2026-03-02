@@ -18,6 +18,9 @@ from gameobjects.player.mannequin import Mannequin
 from gameobjects.player.animator import Animator
 from gameobjects.vertec import plane_vertices
 
+from audio.audio_enigne import AudioEngine
+from audio.audio_source import AudioSource
+
 
 # ====================
 # Pygame / OpenGL init
@@ -56,11 +59,12 @@ player = Player()
 camera = Camera(player, physics)
 renderer = Renderer(width=WIDTH, height=HEIGHT)
 world = World("engine/world_gen.json")
+audio = AudioEngine()
 
 # ====================
 # Static Plane
 # ====================
-
+ 
 # Create Physics Plane
 plane_game_object = GameObject(
     mesh=None,
@@ -74,7 +78,6 @@ physics.add_static(plane_game_object)
 # Create Render Plane
 plane_mesh = Mesh(plane_vertices)
 
-
 # ====================
 # Register world colliders
 # ====================
@@ -82,6 +85,46 @@ plane_mesh = Mesh(plane_vertices)
 for obj in world.objects:
     if obj.collider is not None:
         physics.add_static(obj)
+
+# ====================
+# Create Audio Sources (JSON-driven)
+# ====================
+
+AUDIO_BASE_PATH = "engine/audio/audiosamples/"
+
+for obj in world.objects:
+    config = obj.audio_config
+    if not config:
+        continue
+
+    file_name = config.get("path")
+    if not file_name:
+        continue
+
+    full_path = AUDIO_BASE_PATH + file_name
+
+    audio_source = AudioSource(
+        path=full_path,
+        position=obj.transform.position
+    )
+
+    # Volume
+    volume_percent = config.get("volume")
+    base_gain = max(0.0, min(1.0, volume_percent / 100.0))
+    if audio_source.source is not None:
+        audio_source.source.set_gain(base_gain)
+
+    # Distance
+    if audio_source.source is not None:
+        audio_source.source.set_max_distance(config.get("max_distance"))
+        audio_source.source.set_rolloff_factor(config.get("rolloff"))
+
+    # Loop
+    loop_enabled = config.get("loop")
+
+    audio.add_source(audio_source)
+    audio.object_sources[obj] = audio_source
+    audio_source.play(loop=loop_enabled)
 
 
 # ====================
@@ -183,6 +226,30 @@ while running:
     physics.step(dt, player)
 
     # -------------
+    # Audio Update
+    # -------------
+    # Sync audio source positions + apply soft distance fade
+    for obj, source in audio.object_sources.items():
+        source.set_position(obj.transform.position)
+
+        config = obj.audio_config
+        if not config:
+            continue
+
+        max_distance = config.get("max_distance", 10.0)
+        base_gain = config.get("volume", 100.0) / 100.0
+        fade_ratio = config.get("fade_ratio", 0.4)
+
+        source.apply_distance_fade(
+            camera.player.position,
+            max_distance,
+            base_gain,
+            fade_ratio
+        )
+
+    audio.update(camera)
+
+    # -------------
     # update mannequin
     # -------------
     # if mannequin.animator is not None:
@@ -194,17 +261,20 @@ while running:
     light_space_matrix = renderer.point_light_matrices()
 
     # Shadow pass
-    renderer.render_shadow_pass(scene_objects, avatars=[mannequin])
+    renderer.render_shadow_pass(scene_objects, avatars=[])
 
     # SSAO pass
     renderer.render_ssao_pass(camera, scene_objects)
 
     # Final lighting pass
-    renderer.render_final_pass(mannequin, player, camera, scene_objects)
+    renderer.render_final_pass(None, player, camera, scene_objects)
 
     # Debug grid
     renderer.draw_debug_grid(camera, WIDTH / HEIGHT, size=50.0)
 
+    #volumetric light pass
+    renderer.render_volumetric_pass(camera)
+    
     # Bloom pass
     renderer.render_bloom_pass()
 
@@ -276,4 +346,5 @@ while running:
 
     pygame.display.flip()
 
+audio.shutdown()
 pygame.quit()

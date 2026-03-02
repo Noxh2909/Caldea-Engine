@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 
-from gameobjects.mesh import Mesh, MeshRegistry
+from gameobjects.mesh import MeshRegistry
 from gameobjects.object import GameObject
 from gameobjects.transform import Transform
 from gameobjects.collider.aabb import AABBCollider
@@ -75,12 +75,16 @@ class World:
         # ---------- light ----------
         light = data.get("light")
 
+        # ---------- audio ----------
+        audio_data = data.get("audio")
+
         obj = GameObject(
             mesh=mesh,
             transform=transform,
             material=material,
             collider=collider,
             light=light,
+            audio_config=audio_data,
         )
 
         self.objects.append(obj)

@@ -1,20 +1,29 @@
 {
   "bloom": {
     "enabled": true,
-    "threshold": 1.0,
-    "intensity": 0.09
+    "threshold": 1.2,
+    "intensity": 0.06
   },
   "ssao": {
     "enabled": true,
-    "radius": 0.35,
-    "bias": 0.025
+    "radius": 0.4,
+    "bias": 0.02
   }, 
   "shadow": {
     "resolution": 2048,
     "near_plane": 0.1,
-    "far_plane": 25.0,
+    "far_plane": 30.0,
     "soft_shadows": true,
-    "pcf_samples": 16,
-    "pcf_radius": 0.03
+    "pcf_samples": 24,
+    "pcf_radius": 0.02, 
+    
+    "volumetric": {
+      "enabled": true,
+      "samples": 40,
+      "density": 0.9,
+      "decay": 0.96,
+      "weight": 0.065,
+      "exposure": 0.32
     }
+  }
 }
