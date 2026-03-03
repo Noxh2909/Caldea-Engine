@@ -78,9 +78,9 @@
       "scale": [1.6, 1.6, 1.6],
       "collider": [1, 1, 1],
       "audio": {
-        "path": "horror_mono.wav",
+        "path": "shadow_mono.wav",
         "loop": true,
-        "volume": 40.0,
+        "volume": 60.0,
         "max_distance": 50.0,
         "rolloff": 1.5,
         "fade_ratio": 0.5
