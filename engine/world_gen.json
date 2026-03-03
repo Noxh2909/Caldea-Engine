@@ -38,13 +38,10 @@
       "material": {
         "name": "monalisa",
         "texture_scale_mode": "default",
-        "texture_scale_value": 0.2,
-        "shininess": 0.0,
-        "specular_strength": 0.0
+        "texture_scale_value": 0.2
       },
       "position": [-1, 4, 7.75],
-      "scale": [3, 3, 0.01],
-      "collider": [1, 1, 1]
+      "scale": [3, 3, 0.01]
     },
     {
       "mesh": "cube",
@@ -79,7 +76,7 @@
       },
       "position": [-1, 0.59, 6.9],
       "scale": [1.6, 1.6, 1.6],
-      "collider": [0, 0, 0],
+      "collider": [1, 1, 1],
       "audio": {
         "path": "horror_mono.wav",
         "loop": true,

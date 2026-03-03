@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 from OpenGL import GL
 
 from rendering.renderer import Renderer, RenderObject
@@ -20,6 +21,8 @@ from gameobjects.vertec import plane_vertices
 
 from audio.audio_enigne import AudioEngine
 from audio.audio_source import AudioSource
+
+from debug.gizmo import DebugGizmo
 
 
 # ====================
@@ -60,6 +63,7 @@ camera = Camera(player, physics)
 renderer = Renderer(width=WIDTH, height=HEIGHT)
 world = World("engine/world_gen.json")
 audio = AudioEngine()
+gizmo = DebugGizmo()
 
 # ====================
 # Static Plane
@@ -205,9 +209,12 @@ while running:
     # -------------
     # Events
     # -------------
-    for e in pygame.event.get():
-        if e.type == pygame.QUIT:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_p:
+                gizmo.toggle()
 
     mx, my = pygame.mouse.get_rel()
     player.process_mouse(mx, my)
@@ -217,6 +224,7 @@ while running:
     if actions["toggle_third_person"]:
         first_person = not first_person
         camera.third_person = not first_person
+    
 
     # -------------
     # Player + Physics
@@ -248,7 +256,7 @@ while running:
         )
 
     audio.update(camera)
-
+    
     # -------------
     # update mannequin
     # -------------
@@ -343,6 +351,29 @@ while running:
         obj_pos=object_position,
         obj_scale=object_scale,
     )
+    
+    # -------------
+    # Collider Gizmos
+    # -------------
+    if gizmo.enabled:
+        vp = camera.get_projection_matrix(WIDTH / HEIGHT) @ camera.get_view_matrix()
+
+        for obj in physics.static_objects:
+            if hasattr(obj, "collider") and obj.collider is not None:
+                corners = obj.collider.get_corners(obj.transform)
+
+                edges = [
+                    (0,1),(1,2),(2,3),(3,0),
+                    (4,5),(5,6),(6,7),(7,4),
+                    (0,4),(1,5),(2,6),(3,7)
+                ]
+
+                lines = []
+                for i0, i1 in edges:
+                    lines.append(corners[i0])
+                    lines.append(corners[i1])
+
+                gizmo.draw_lines(vp, np.array(lines), color=(0, 1, 0))
 
     pygame.display.flip()
 
