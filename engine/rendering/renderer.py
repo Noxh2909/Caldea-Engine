@@ -428,7 +428,8 @@ class Renderer:
             f"{player.position[2]:.2f}",
             f"Controlled object (switch 'M'): {obj['target']}",
             f"Object Pos: {obj_pos[0]:.2f}, {obj_pos[1]:.2f}, {obj_pos[2]:.2f}",
-            f"Object Scale: {obj_scale[0]:.2f}, {obj_scale[1]:.2f}, {obj_scale[2]:.2f}"
+            f"Object Scale: {obj_scale[0]:.2f}, {obj_scale[1]:.2f}, {obj_scale[2]:.2f}",
+            f"(Press 'P' to toggle object collider gizmos)"
         ]
 
         x, y = 10, 10
