@@ -66,6 +66,9 @@ class Mesh:
 
         stride_floats = 12 if self.is_skinned else 8
         self.vertex_count = vertices.size // stride_floats
+        # Store layout info for dynamic position updates
+        self.stride_floats = stride_floats
+        self.stride_bytes = stride_floats * 4
         self.index_count = len(indices) if indices is not None else 0
         self.has_indices = indices is not None
 
@@ -76,7 +79,10 @@ class Mesh:
         GL.glBindVertexArray(self.vao)
         # VBO
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL.GL_STATIC_DRAW)
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL.GL_DYNAMIC_DRAW)
+
+        # Keep CPU-side copy for efficient dynamic updates
+        self._vertex_buffer = vertices.copy()
 
         # EBO (optional)
         if self.has_indices and indices is not None:
@@ -133,6 +139,29 @@ class Mesh:
         else:
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.vertex_count)
         GL.glBindVertexArray(0)
+
+
+    def update_positions(self, positions: np.ndarray):
+        """
+        Efficient bulk update of vertex positions.
+        Updates CPU copy and performs a single glBufferSubData call.
+        """
+        assert positions.shape[0] == self.vertex_count, \
+            "Position count mismatch"
+
+        # Update CPU-side interleaved buffer (only first 3 floats per vertex)
+        reshaped = self._vertex_buffer.reshape(self.vertex_count, self.stride_floats)
+        reshaped[:, 0:3] = positions
+
+        # Single GPU upload
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
+        GL.glBufferSubData(
+            GL.GL_ARRAY_BUFFER,
+            0,
+            self._vertex_buffer.nbytes,
+            self._vertex_buffer
+        )
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
 
 
 class MeshRegistry:

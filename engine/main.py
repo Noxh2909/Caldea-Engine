@@ -23,6 +23,8 @@ from audio.audio_enigne import AudioEngine
 from audio.audio_source import AudioSource
 
 from debug.gizmo import DebugGizmo
+from debug.object_control import DebugObjectController
+from physics.cloth import Cloth
 
 
 # ====================
@@ -64,6 +66,22 @@ renderer = Renderer(width=WIDTH, height=HEIGHT)
 world = World("engine/world_gen.json")
 audio = AudioEngine()
 gizmo = DebugGizmo()
+debug_controller = DebugObjectController()
+
+# ====================
+# Cloth (2D Curtain)
+# ====================
+cloth = Cloth(
+    origin=(0.0, 6.0, -3.0),
+    width=4.0,
+    height=4.0,
+    segments_x=15,
+    segments_y=15,
+)
+
+# Fixed timestep for cloth (60 Hz)
+cloth_accumulator = 0.0
+cloth_fixed_dt = 1.0 / 60.0
 
 # ====================
 # Static Plane
@@ -107,6 +125,9 @@ for obj in world.objects:
 
     full_path = AUDIO_BASE_PATH + file_name
 
+    if obj.transform is None:
+        continue
+
     audio_source = AudioSource(
         path=full_path,
         position=obj.transform.position
@@ -136,7 +157,7 @@ for obj in world.objects:
 # ====================
 
 sun = world.sun
-if sun and sun.light:
+if sun and sun.transform and sun.light:
     renderer.set_light(
         position=sun.transform.position,
         direction=sun.light["direction"],
@@ -191,6 +212,23 @@ for obj in world.objects:
             )
         )
 
+# ---- Cloth Render Setup ----
+cloth_vertices, cloth_normals, cloth_uvs, cloth_indices = cloth.build_mesh_data()
+
+cloth_mesh = Mesh(
+    positions=cloth_vertices,
+    normals=cloth_normals,
+    uvs=cloth_uvs,
+    indices=cloth_indices
+)
+
+cloth_object = RenderObject(
+    mesh=cloth_mesh,
+    transform=Transform(),
+    material=Material(color=(1.0, 1.0, 1.0))
+)
+
+scene_objects.append(cloth_object)
 
 # ====================
 # Main Loop
@@ -198,13 +236,11 @@ for obj in world.objects:
 
 running = True
 first_person = True
-camera.third_person = False
+# camera.third_person = False
 
-# State for object control
-control_state = {"target": "sun", "m_was_pressed": False}
 
 while running:
-    dt = clock.tick(120) / 1000.0
+    dt = clock.tick(240) / 1000.0
 
     # -------------
     # Events
@@ -221,9 +257,9 @@ while running:
 
     actions = input_state.update()
 
-    if actions["toggle_third_person"]:
-        first_person = not first_person
-        camera.third_person = not first_person
+    # if actions["toggle_third_person"]:
+    #     first_person = not first_person
+    #     camera.third_person = not first_person
     
 
     # -------------
@@ -231,7 +267,17 @@ while running:
     # -------------
     player.prev_position = player.position.copy()
     player.process_keyboard(actions, dt)
-    physics.step(dt, player)
+    physics.step(dt, player)    
+
+    # Fixed 60Hz cloth simulation
+    cloth_accumulator += dt
+    while cloth_accumulator >= cloth_fixed_dt:
+        cloth.step(cloth_fixed_dt, iterations=1)
+        cloth_accumulator -= cloth_fixed_dt
+
+    # ---- Update Cloth Mesh Vertices ----
+    updated_vertices = np.array(cloth.points, dtype=np.float32)
+    cloth_mesh.update_positions(updated_vertices)
 
     # -------------
     # Audio Update
@@ -275,7 +321,13 @@ while running:
     renderer.render_ssao_pass(camera, scene_objects)
 
     # Final lighting pass
+    # Render scene normally (with culling)
     renderer.render_final_pass(None, player, camera, scene_objects)
+
+    # Ensure cloth renders double-sided
+    GL.glDisable(GL.GL_CULL_FACE)
+    cloth_mesh.draw()
+    GL.glEnable(GL.GL_CULL_FACE)
 
     # Debug grid
     renderer.draw_debug_grid(camera, WIDTH / HEIGHT, size=50.0)
@@ -287,40 +339,10 @@ while running:
     renderer.render_bloom_pass()
 
     # -------------
-    # DEBUG OBJECT CONTROL
+    # DEBUG OBJECT CONTROL (generic)
     # -------------
-    keys = pygame.key.get_pressed()
+    target_transform = debug_controller.update(sun, world.objects)
 
-    obj_movement_speed = 0.1
-
-    # Toggle control target with 'M' key (single press)
-    if keys[pygame.K_m] and not control_state["m_was_pressed"]:
-        # Get list of controllable objects
-        controllable_objects = ["sun"] + [
-            f"scene_{i}" for i in range(len(scene_objects) - 1)
-        ]
-        current_index = controllable_objects.index(control_state["target"])
-        next_index = (current_index + 1) % len(controllable_objects)
-        control_state["target"] = controllable_objects[next_index]
-        control_state["m_was_pressed"] = True
-    elif not keys[pygame.K_m]:
-        control_state["m_was_pressed"] = False
-
-    control_target = control_state["target"]
-
-    # Determine which object to control
-    target_transform = None
-    if control_target == "mannequin":
-        # Mannequin doesn't have a direct transform attribute, skip it
-        target_transform = None
-    elif control_target == "sun" and sun is not None:
-        target_transform = sun.transform
-    elif control_target.startswith("scene_"):
-        scene_index = int(control_target.split("_")[1])
-        if scene_index < len(scene_objects) - 1:  # Exclude mannequin
-            target_transform = scene_objects[scene_index].transform
-
-    # Get object position / scale (HUD-safe)
     if target_transform is not None:
         object_position = target_transform.position
         object_scale = target_transform.scale
@@ -328,26 +350,18 @@ while running:
         object_position = (0.0, 0.0, 0.0)
         object_scale = (0.0, 0.0, 0.0)
 
-    # Apply movement to target object
-    if target_transform is not None:
-        if keys[pygame.K_UP]:
-            target_transform.position[2] -= obj_movement_speed
-        if keys[pygame.K_DOWN]:
-            target_transform.position[2] += obj_movement_speed
-        if keys[pygame.K_LEFT]:
-            target_transform.position[0] -= obj_movement_speed
-        if keys[pygame.K_RIGHT]:
-            target_transform.position[0] += obj_movement_speed
-        if keys[pygame.K_PAGEUP]:
-            target_transform.position[1] += obj_movement_speed
-        if keys[pygame.K_PAGEDOWN]:
-            target_transform.position[1] -= obj_movement_speed
+    # Resolve current object name for HUD
+    current_name = "None"
+    if debug_controller.targets:
+        current_obj = debug_controller.targets[debug_controller.current_index]
+        current_name = getattr(current_obj, "obj_name", None)
+        if not current_name:
+            current_name = type(current_obj).__name__
 
-    # Debug HUD
     renderer.render_debug_hud(
         clock,
         player,
-        obj=control_state,
+        obj={"target": current_name},
         obj_pos=object_position,
         obj_scale=object_scale,
     )
@@ -373,7 +387,23 @@ while running:
                     lines.append(corners[i0])
                     lines.append(corners[i1])
 
-                gizmo.draw_lines(vp, np.array(lines), color=(0, 1, 0))
+                # Get currently selected object
+                selected_obj = None
+                if debug_controller.targets:
+                    selected_obj = debug_controller.targets[debug_controller.current_index]
+
+                # Choose color
+                if obj is selected_obj:
+                    color = (1, 0, 0)
+                else:
+                    color = (0, 1, 0)
+
+                gizmo.draw_lines(vp, np.array(lines), color=color)
+
+        # ---- Cloth Debug ----
+        cloth_lines = cloth.get_debug_lines()
+        if cloth_lines is not None and len(cloth_lines) > 0:
+            gizmo.draw_lines(vp, cloth_lines, color=(0.2, 0.6, 1.0))
 
     pygame.display.flip()
 

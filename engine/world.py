@@ -77,6 +77,9 @@ class World:
 
         # ---------- audio ----------
         audio_data = data.get("audio")
+        
+        # ---------- obj_name ----------
+        obj_name = data.get("obj_name")
 
         obj = GameObject(
             mesh=mesh,
@@ -85,6 +88,7 @@ class World:
             collider=collider,
             light=light,
             audio_config=audio_data,
+            obj_name=obj_name
         )
 
         self.objects.append(obj)

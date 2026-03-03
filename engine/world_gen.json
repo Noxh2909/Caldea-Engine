@@ -1,6 +1,7 @@
 {
   "objects": [
     {
+      "obj_name": "Wall1",
       "mesh": "cube",
       "material": {
         "name": "wood",
@@ -12,6 +13,7 @@
       "collider": [1, 1, 1]
     },
     {
+      "obj_name": "Wall2",
       "mesh": "cube",
       "material": {
         "name": "wood",
@@ -23,6 +25,7 @@
       "collider": [1, 1, 1]
     },
     {
+      "obj_name": "Wall3",
       "mesh": "cube",
       "material": {
         "name": "wood",
@@ -34,6 +37,7 @@
       "collider": [1, 1, 1]
     },
      {
+      "obj_name": "MonaLisa",
       "mesh": "cube",
       "material": {
         "name": "monalisa",
@@ -44,6 +48,7 @@
       "scale": [3, 3, 0.01]
     },
     {
+      "obj_name": "Ceiling",
       "mesh": "cube",
       "material": {
         "name": "marble",
@@ -55,6 +60,7 @@
       "collider": [1, 1, 1]
     },
     {
+      "obj_name": "Floor",
       "mesh": "cube",
       "material": {
         "name": "marble",
@@ -68,6 +74,7 @@
       "collider": [1, 1.5, 1]
     },
     {
+      "obj_name": "Jukebox",
       "mesh": "cube",
       "material": {
         "name": "jukebox",
@@ -87,6 +94,7 @@
       }
     },
     {
+      "obj_name": "Lamp",
       "mesh": "sphere",
       "material": {
         "name": "sun",
