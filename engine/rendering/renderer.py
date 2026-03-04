@@ -500,7 +500,10 @@ class Renderer:
         :param size: The size of the grid plane
         :type size: float
         """
+        GL.glEnable(GL.GL_DEPTH_TEST)
+        GL.glDepthMask(GL.GL_FALSE)  # do not write to depth buffer
         GL.glDisable(GL.GL_CULL_FACE)
+
         GL.glUseProgram(self.grid_program)
 
         GL.glUniformMatrix4fv(
@@ -515,6 +518,8 @@ class Renderer:
 
         GL.glBindVertexArray(self.grid_vao)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.grid_vertex_count)
+
+        GL.glDepthMask(GL.GL_TRUE)
         GL.glEnable(GL.GL_CULL_FACE)
         GL.glBindVertexArray(0)
         
@@ -928,6 +933,7 @@ class Renderer:
         self.final_pcf_samples_loc = GL.glGetUniformLocation(self.final_program, "u_pcfSamples")
         self.final_pcf_radius_loc = GL.glGetUniformLocation(self.final_program, "u_pcfRadius")
         self.final_double_sided_loc = GL.glGetUniformLocation(self.final_program, "u_double_sided")
+        self.final_opacity_loc = GL.glGetUniformLocation(self.final_program, "u_opacity")
                     
     # -----------------------
     # Shadow mapping
@@ -1409,30 +1415,20 @@ class Renderer:
     # and shading to produce the final image.
     # -----------------------
         
-    def render_final_pass(self, mannequin, player, camera, scene_objects: list[RenderObject]) -> None:
-        """
-        Final lighting pass.
-
-        Combines:
-        - Shadow mapping
-        - SSAO
-        - Planar reflections
-        - Forward lighting
-        """
+    def render_final_pass(self, mannequin, player, camera, scene_objects: list[RenderObject], screen_width, screen_height) -> None:
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.hdr_fbo)
 
         GL.glEnable(GL.GL_DEPTH_TEST)
-        GL.glViewport(0, 0, self.width, self.height)
+        GL.glViewport(0, 0, screen_width, screen_height)
         GL.glClearColor(0.1, 0.1, 0.1, 1.0)
         GL.glClear(int(GL.GL_COLOR_BUFFER_BIT) | int(GL.GL_DEPTH_BUFFER_BIT))
 
         GL.glUseProgram(self.final_program)
-        GL.glUniform1i(self.final_is_skinned_loc, 1)
 
-        # -----------------------
+        # =========================
         # Global uniforms
-        # -----------------------
+        # =========================
         GL.glUniformMatrix4fv(
             self.final_proj_loc, 1, GL.GL_TRUE, self.projection
         )
@@ -1440,56 +1436,45 @@ class Renderer:
             self.final_view_loc, 1, GL.GL_TRUE, camera.get_view_matrix()
         )
 
-        # -----------------------
+        # =========================
         # Light uniforms
-        # -----------------------
-        GL.glUniform3fv(
-            self.final_light_pos_loc, 1, self.light_pos
-        )
-        GL.glUniform3fv(
-            self.final_view_pos_loc, 1, player.position
-        )
-        GL.glUniform3fv(
-            self.final_light_color_loc, 1, self.light_color
-        )
-        GL.glUniform1f(
-            self.final_light_intensity_loc, self.light_intensity
-        )
-        GL.glUniform1f(
-            self.final_ambient_strength_loc, self.light_ambient
-        )
+        # =========================
+        GL.glUniform3fv(self.final_light_pos_loc, 1, self.light_pos)
+        GL.glUniform3fv(self.final_view_pos_loc, 1, player.position)
+        GL.glUniform3fv(self.final_light_color_loc, 1, self.light_color)
+
+        GL.glUniform1f(self.final_light_intensity_loc, self.light_intensity)
+        GL.glUniform1f(self.final_ambient_strength_loc, self.light_ambient)
+
         GL.glUniform1f(
             GL.glGetUniformLocation(self.final_program, "far_plane"),
             self.shadow_cfg.get("far_plane")
         )
-        
-        # -----------------------
-        # Shadow mapping uniforms
-        # -----------------------
-        GL.glUniform1i(
-            self.final_soft_shadows_loc, 1 if self.shadow_cfg.get("soft_shadows") else 0
-        )
-        
-        GL.glUniform1i(
-            self.final_pcf_samples_loc, self.shadow_cfg.get("pcf_samples")
-        )
-        
-        GL.glUniform1f(
-            self.final_pcf_radius_loc, self.shadow_cfg.get("pcf_radius")
-        )
-       
-        # -----------------------
-        # Bind textures
-        # -----------------------
 
-        # Shadow map
+        GL.glUniform1i(
+            self.final_soft_shadows_loc,
+            1 if self.shadow_cfg.get("soft_shadows") else 0
+        )
+
+        GL.glUniform1i(
+            self.final_pcf_samples_loc,
+            self.shadow_cfg.get("pcf_samples")
+        )
+
+        GL.glUniform1f(
+            self.final_pcf_radius_loc,
+            self.shadow_cfg.get("pcf_radius")
+        )
+
+        # =========================
+        # Bind Textures
+        # =========================
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, self.depth_texture)
         GL.glUniform1i(
             GL.glGetUniformLocation(self.final_program, "depthMap"), 0
         )
 
-        # SSAO (blurred)
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(
             GL.GL_TEXTURE_2D, self.ssao_data["ssao_blur_texture"]
@@ -1498,14 +1483,26 @@ class Renderer:
             GL.glGetUniformLocation(self.final_program, "ssaoTexture"), 1
         )
 
-        # -----------------------
-        # Draw all static objects
-        # -----------------------
-
-        # Static meshes: NO skinning
-        GL.glUniform1i(self.final_is_skinned_loc, 0)
+        # =========================
+        # Split opaque / transparent
+        # =========================
+        opaque = []
+        transparent = []
 
         for obj in scene_objects:
+            if getattr(obj.material, "opacity", 1.0) < 1.0:
+                transparent.append(obj)
+            else:
+                opaque.append(obj)
+
+        # =========================
+        # OPAQUE PASS
+        # =========================
+        GL.glDisable(GL.GL_BLEND)
+        GL.glDepthMask(GL.GL_TRUE)
+
+        for obj in opaque:
+
             GL.glUniformMatrix4fv(
                 self.final_model_loc,
                 1,
@@ -1518,7 +1515,27 @@ class Renderer:
                 *obj.material.color
             )
 
-            # texture binding per object
+            GL.glUniform1f(
+                self.final_specular_strength_loc,
+                obj.material.specular_strength
+            )
+
+            GL.glUniform1f(
+                self.final_shininess_loc,
+                obj.material.shininess
+            )
+
+            GL.glUniform1f(
+                self.final_opacity_loc,
+                getattr(obj.material, "opacity", 1.0)
+            )
+
+            GL.glUniform1i(
+                self.final_double_sided_loc,
+                1 if getattr(obj.material, "double_sided", False) else 0
+            )
+
+            # Texture binding
             if obj.material.texture is not None:
                 GL.glActiveTexture(GL.GL_TEXTURE3)
                 GL.glBindTexture(GL.GL_TEXTURE_2D, obj.material.texture)
@@ -1533,7 +1550,7 @@ class Renderer:
                     GL.glGetUniformLocation(self.final_program, "u_use_texture"), 0
                 )
 
-            # triplanarity per object
+            # Triplanar
             mode = getattr(obj.material, "texture_scale_mode", "default")
 
             if mode == "default":
@@ -1549,21 +1566,11 @@ class Renderer:
                     GL.glGetUniformLocation(self.final_program, "u_texture_mode"), 1
                 )
                 GL.glUniform1f(
-                    GL.glGetUniformLocation(self.final_program, "u_triplanar_scale"), 
+                    GL.glGetUniformLocation(self.final_program, "u_triplanar_scale"),
                     getattr(obj.material, "texture_scale_value")
                 )
 
-            GL.glUniform1f(
-                self.final_specular_strength_loc,
-                obj.material.specular_strength
-            )
-            GL.glUniform1f(
-                self.final_shininess_loc,
-                obj.material.shininess
-            )
-
-            GL.glUniform1i(self.final_double_sided_loc, 1 if getattr(obj.material, "double_sided", False) else 0)
-
+            # Culling
             if getattr(obj.material, "double_sided", False):
                 GL.glDisable(GL.GL_CULL_FACE)
             else:
@@ -1571,9 +1578,110 @@ class Renderer:
                 GL.glCullFace(GL.GL_BACK)
 
             obj.mesh.draw()
-        # -----------------------
-        # Draw player mannequin
-        # -----------------------
 
+        # =========================
+        # TRANSPARENT PASS
+        # =========================
+        if transparent:
+
+            cam_pos = player.position
+
+            transparent.sort(
+                key=lambda o: np.linalg.norm(
+                    o.transform.position - cam_pos
+                ),
+                reverse=True
+            )
+
+            GL.glEnable(GL.GL_BLEND)
+            GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+            GL.glDepthMask(GL.GL_FALSE)
+
+            for obj in transparent:
+
+                GL.glUniformMatrix4fv(
+                    self.final_model_loc,
+                    1,
+                    GL.GL_TRUE,
+                    obj.transform.matrix(),
+                )
+
+                GL.glUniform3f(
+                    self.final_object_color_loc,
+                    *obj.material.color
+                )
+
+                GL.glUniform1f(
+                    self.final_specular_strength_loc,
+                    obj.material.specular_strength
+                )
+
+                GL.glUniform1f(
+                    self.final_shininess_loc,
+                    obj.material.shininess
+                )
+
+                GL.glUniform1f(
+                    self.final_opacity_loc,
+                    getattr(obj.material, "opacity", 1.0)
+                )
+
+                GL.glUniform1i(
+                    self.final_double_sided_loc,
+                    1 if getattr(obj.material, "double_sided", False) else 0
+                )
+
+                if obj.material.texture is not None:
+                    GL.glActiveTexture(GL.GL_TEXTURE3)
+                    GL.glBindTexture(GL.GL_TEXTURE_2D, obj.material.texture)
+                    GL.glUniform1i(
+                        GL.glGetUniformLocation(self.final_program, "u_texture"), 3
+                    )
+                    GL.glUniform1i(
+                        GL.glGetUniformLocation(self.final_program, "u_use_texture"), 1
+                    )
+                else:
+                    GL.glUniform1i(
+                        GL.glGetUniformLocation(self.final_program, "u_use_texture"), 0
+                    )
+
+                # Triplanar
+                mode = getattr(obj.material, "texture_scale_mode", "default")
+
+                if mode == "default":
+                    GL.glUniform1i(
+                        GL.glGetUniformLocation(self.final_program, "u_texture_mode"), 0
+                    )
+                    GL.glUniform1f(
+                        GL.glGetUniformLocation(self.final_program, "u_triplanar_scale"), 1.0
+                    )
+
+                elif mode == "triplanar":
+                    GL.glUniform1i(
+                        GL.glGetUniformLocation(self.final_program, "u_texture_mode"), 1
+                    )
+                    GL.glUniform1f(
+                        GL.glGetUniformLocation(self.final_program, "u_triplanar_scale"),
+                        getattr(obj.material, "texture_scale_value")
+                    )
+
+                if getattr(obj.material, "double_sided", False):
+                    GL.glDisable(GL.GL_CULL_FACE)
+                else:
+                    GL.glEnable(GL.GL_CULL_FACE)
+                    GL.glCullFace(GL.GL_BACK)
+
+                obj.mesh.draw()
+
+            GL.glDepthMask(GL.GL_TRUE)
+            GL.glDisable(GL.GL_BLEND)
+
+        # =========================
+        # Draw player mannequin
+        # =========================
         if mannequin is not None:
             self.render_player(mannequin)
+            
+        self.draw_debug_grid(camera, screen_width / screen_height, size=50.0)
+
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)

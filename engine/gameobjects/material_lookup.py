@@ -51,6 +51,7 @@ MATERIAL_TABLE = {
 class Material:
     def __init__(
         self,
+        opacity = 1.0,
         double_sided=False,
         color=(1.0, 1.0, 1.0),
         texture=None,
@@ -68,6 +69,7 @@ class Material:
         shininess : optional float for shininess
         specular_strength : optional float for specular strength
         """
+        self.opacity = opacity
         self.double_sided = double_sided
         self.color = color
         self.texture = texture

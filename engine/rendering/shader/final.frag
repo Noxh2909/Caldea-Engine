@@ -23,6 +23,7 @@ uniform float u_triplanar_scale;
 uniform samplerCube depthMap;
 uniform vec3 lightPos;
 uniform float far_plane;
+uniform float u_opacity;
 
 // ----------------------
 // Shadow calculation
@@ -137,5 +138,5 @@ void main() {
   // Final output
   // ----------------------
   vec3 finalColor = lighting * baseColor;
-  FragColor = vec4(finalColor, 1.0);
+  FragColor = vec4(finalColor, u_opacity);
 }

@@ -41,8 +41,9 @@ class World:
         # ---------- mesh ----------
         mesh_name = data.get("mesh")
         
-        if mesh_name == "cloth":
-            mesh = None  
+        material_blacklist = ["cloth"]  # Meshes that should not have a material assigned
+        if mesh_name in material_blacklist:
+            mesh = None
         else:
             mesh = MeshRegistry.get(mesh_name) if mesh_name else None
 
@@ -58,6 +59,7 @@ class World:
             if base_name:
                 base_material = MaterialRegistry.get(base_name)
                 material = Material(
+                    opacity=material_data.get("opacity", 1.0),
                     double_sided=material_data.get("double_sided", False),
                     color=base_material.color,
                     texture=base_material.texture,

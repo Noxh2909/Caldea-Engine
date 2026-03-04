@@ -199,10 +199,7 @@ while running:
     renderer.render_ssao_pass(camera, scene_objects)
 
     # Final lighting pass
-    renderer.render_final_pass(None, player, camera, scene_objects)
-
-    # Debug grid
-    renderer.draw_debug_grid(camera, WIDTH / HEIGHT, size=50.0)
+    renderer.render_final_pass(None, player, camera, scene_objects, WIDTH, HEIGHT)
 
     # #volumetric light pass
     renderer.render_volumetric_pass(camera)
