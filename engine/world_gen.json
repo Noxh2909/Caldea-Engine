@@ -42,6 +42,20 @@
       "scale": [10, 10, 0.5],
       "collider": [1, 1, 1]
     },
+    {
+      "obj_name": "Wall4",
+      "mesh": "cube",
+      "material": {
+        "name": "wood",
+        "texture_scale_mode": "triplanar",
+        "texture_scale_value": 0.1,
+        "shininess": 32.0,
+        "specular_strength": 0.5
+      },
+      "position": [-1, 0, -2],
+      "scale": [10, 10, 0.5],
+      "collider": [1, 1, 1]
+    },
      {
       "obj_name": "Picture",
       "mesh": "cube",
@@ -125,7 +139,7 @@
         "segments_x": 15,
         "segments_y": 15,
         "gravity": [0, -9.81, 0],
-        "wind_rate": 3.0
+        "wind_rate": 1.0
       }
     },
     {
