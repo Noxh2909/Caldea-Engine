@@ -24,7 +24,7 @@ class AudioSource:
     # ----------------------------
     # Playback
     # ----------------------------
-    def play(self, loop=False):
+    def play(self, loop=True):
         if self.source is not None:
             self.source.set_looping(loop)
             self.source.play()
@@ -73,3 +73,22 @@ class AudioSource:
         smooth = t * t * (3.0 - 2.0 * t)
 
         self.source.set_gain(base_gain * smooth)
+        
+    # ----------------------------
+    # Configuration Setters
+    # ----------------------------
+    def set_loop(self, loop):
+        if self.source is not None:
+            self.source.set_looping(loop)
+            
+    def set_gain(self, gain):
+        if self.source is not None:
+            self.source.set_gain(gain)
+            
+    def set_max_distance(self, max_distance):
+        if self.source is not None:
+            self.source.set_max_distance(max_distance)
+    def set_rolloff(self, rolloff):
+        
+        if self.source is not None:
+            self.source.set_rolloff_factor(rolloff)

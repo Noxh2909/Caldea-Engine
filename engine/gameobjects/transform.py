@@ -4,6 +4,8 @@ class Transform:
     def __init__(self, position=(0, 0, 0), scale=(1, 1, 1), yaw=0.0):
         self.position = np.array(position, dtype=np.float32)
         self.scale = np.array(scale, dtype=np.float32)
+        self.position[1] += self.scale[1] * 0.5 # Adjust Y position to account for scale (assuming pivot at bottom)
+        
         self.yaw = yaw
 
     def matrix(self):

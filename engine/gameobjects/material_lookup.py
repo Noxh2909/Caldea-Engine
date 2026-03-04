@@ -40,7 +40,10 @@ MATERIAL_TABLE = {
     "wavewall": lambda: Material(
         texture=Texture.load_texture(os.path.join(texture_dir, "wavewall.png"))
     ),
-    "sun": lambda: Material(color=(255, 255, 255), emissive=True),
+    "curtain": lambda: Material(
+        texture=Texture.load_texture(os.path.join(texture_dir, "curtain.png"))
+    ),
+    "sun": lambda: Material(color=(255, 255, 255)),
     "white": lambda: Material(color=(1.0, 1.0, 1.0)),
 }
 
@@ -48,13 +51,14 @@ MATERIAL_TABLE = {
 class Material:
     def __init__(
         self,
+        opacity = 1.0,
+        double_sided=False,
         color=(1.0, 1.0, 1.0),
         texture=None,
-        emissive=False,
         texture_scale_mode=None,
         texture_scale_value=None,
-        shininess=48.0,
-        specular_strength=1.0,
+        shininess=None,
+        specular_strength=None,
     ):
         """
         color         : fallback color (vec3)
@@ -65,9 +69,10 @@ class Material:
         shininess : optional float for shininess
         specular_strength : optional float for specular strength
         """
+        self.opacity = opacity
+        self.double_sided = double_sided
         self.color = color
         self.texture = texture
-        self.emissive = emissive
         self.texture_scale_mode = texture_scale_mode
         self.texture_scale_value = texture_scale_value
         self.shininess = shininess
