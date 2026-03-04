@@ -8,15 +8,12 @@ class DebugObjectController:
         self.current_index = 0
         self.m_was_pressed = False
 
-    def _build_target_list(self, sun, world_objects):
+    def _build_target_list(self, world_objects):
         """
         Build list of controllable objects.
-        Includes sun (if present) and all world objects that have a transform.
+        Includes all world objects that have a transform.
         """
         self.targets = []
-
-        if sun is not None:
-            self.targets.append(sun)
 
         for obj in world_objects:
             if hasattr(obj, "transform"):
@@ -25,11 +22,11 @@ class DebugObjectController:
         if self.current_index >= len(self.targets):
             self.current_index = 0
 
-    def update(self, sun, world_objects):
+    def update(self, world_objects):
         keys = pygame.key.get_pressed()
 
         # Rebuild target list each frame (safe if objects change)
-        self._build_target_list(sun, world_objects)
+        self._build_target_list(world_objects)
 
         if not self.targets:
             return None

@@ -11,6 +11,7 @@ uniform sampler2D u_texture;
 uniform bool u_use_texture;
 uniform bool u_is_emissive;
 uniform bool u_softShadows;
+uniform bool u_double_sided;
 uniform int u_pcfSamples;
 uniform float u_pcfRadius;
 uniform int u_texture_mode; // 0 = UV, 1 = triplanar
@@ -34,6 +35,8 @@ float ShadowCalculation(vec3 fragPos)
 
     // normal-based bias (reduces acne)
     vec3 N = normalize(Normal);
+    if(u_double_sided && !gl_FrontFacing)
+        N = -N;
     vec3 L = normalize(fragToLight);
     float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);
 
@@ -71,15 +74,6 @@ float ShadowCalculation(vec3 fragPos)
 
 // Main function
 void main() {
-
-  // ----------------------
-  // emissive determination
-  // ----------------------
-
-  if (u_is_emissive) {
-    FragColor = vec4(objectColor, 1.0);
-    return;
-  }
 
   // ----------------------
   // Texture sampling
@@ -120,6 +114,8 @@ void main() {
   float ao = texture(ssaoTexture, screenUV).r;
   vec3 ambient = u_ambientStrength * ao * lightColor * u_lightIntensity;
   vec3 norm = normalize(Normal);
+  if(u_double_sided && !gl_FrontFacing)
+    norm = -norm;
   vec3 lightDir = normalize(lightPos - FragPos);
   float diff = max(dot(norm, lightDir), 0.0);
   vec3 diffuse = diff * lightColor * baseColor * u_lightIntensity;

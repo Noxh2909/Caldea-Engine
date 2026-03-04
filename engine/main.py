@@ -20,11 +20,10 @@ from gameobjects.player.animator import Animator
 from gameobjects.vertec import plane_vertices
 
 from audio.audio_enigne import AudioEngine
-from audio.audio_source import AudioSource
 
 from debug.gizmo import DebugGizmo
 from debug.object_control import DebugObjectController
-from physics.cloth import Cloth
+from components.light_component import LightComponent
 
 
 # ====================
@@ -32,7 +31,7 @@ from physics.cloth import Cloth
 # ====================
 
 pygame.init()
-pygame.display.set_caption("Game Engine")
+pygame.display.set_caption("Caldea Engine")
 
 pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, 3)
 pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, 3)
@@ -63,25 +62,10 @@ physics = PhysicsWorld()
 player = Player()
 camera = Camera(player, physics)
 renderer = Renderer(width=WIDTH, height=HEIGHT)
-world = World("engine/world_gen.json")
 audio = AudioEngine()
+world = World(audio, "engine/world_gen.json")
 gizmo = DebugGizmo()
 debug_controller = DebugObjectController()
-
-# ====================
-# Cloth (2D Curtain)
-# ====================
-cloth = Cloth(
-    origin=(0.0, 6.0, -3.0),
-    width=4.0,
-    height=4.0,
-    segments_x=15,
-    segments_y=15,
-)
-
-# Fixed timestep for cloth (60 Hz)
-cloth_accumulator = 0.0
-cloth_fixed_dt = 1.0 / 60.0
 
 # ====================
 # Static Plane
@@ -109,65 +93,6 @@ for obj in world.objects:
         physics.add_static(obj)
 
 # ====================
-# Create Audio Sources (JSON-driven)
-# ====================
-
-AUDIO_BASE_PATH = "engine/audio/audiosamples/"
-
-for obj in world.objects:
-    config = obj.audio_config
-    if not config:
-        continue
-
-    file_name = config.get("path")
-    if not file_name:
-        continue
-
-    full_path = AUDIO_BASE_PATH + file_name
-
-    if obj.transform is None:
-        continue
-
-    audio_source = AudioSource(
-        path=full_path,
-        position=obj.transform.position
-    )
-
-    # Volume
-    volume_percent = config.get("volume")
-    base_gain = max(0.0, min(1.0, volume_percent / 100.0))
-    if audio_source.source is not None:
-        audio_source.source.set_gain(base_gain)
-
-    # Distance
-    if audio_source.source is not None:
-        audio_source.source.set_max_distance(config.get("max_distance"))
-        audio_source.source.set_rolloff_factor(config.get("rolloff"))
-
-    # Loop
-    loop_enabled = config.get("loop")
-
-    audio.add_source(audio_source)
-    audio.object_sources[obj] = audio_source
-    audio_source.play(loop=loop_enabled)
-
-
-# ====================
-# Sun / Light
-# ====================
-
-sun = world.sun
-if sun and sun.transform and sun.light:
-    renderer.set_light(
-        position=sun.transform.position,
-        direction=sun.light["direction"],
-        color=sun.light["color"],
-        intensity=sun.light["intensity"],
-        ambient=sun.light.get("ambient_strength"),
-    )
-
-
-# ====================
 # Load mannequin (FBX)
 # ====================
 
@@ -181,15 +106,10 @@ mannequin = Mannequin(
     foot_offset=0.0,
     scale=0.018,
 )
-assert mannequin.mesh is not None, "Mannequin mesh not loaded"
-assert mannequin.skeleton is not None, "Mannequin skeleton not loaded"
-
 
 # ====================
 # Animator
 # ====================
-
-assert animations, "No animations loaded from FBX"
 
 # Nimm die erste Animation (z. B. Walk / Take 001)
 anim_clip = list(animations.values())[0]
@@ -212,32 +132,11 @@ for obj in world.objects:
             )
         )
 
-# ---- Cloth Render Setup ----
-cloth_vertices, cloth_normals, cloth_uvs, cloth_indices = cloth.build_mesh_data()
-
-cloth_mesh = Mesh(
-    positions=cloth_vertices,
-    normals=cloth_normals,
-    uvs=cloth_uvs,
-    indices=cloth_indices
-)
-
-cloth_object = RenderObject(
-    mesh=cloth_mesh,
-    transform=Transform(),
-    material=Material(color=(1.0, 1.0, 1.0))
-)
-
-scene_objects.append(cloth_object)
-
 # ====================
 # Main Loop
 # ====================
 
 running = True
-first_person = True
-# camera.third_person = False
-
 
 while running:
     dt = clock.tick(240) / 1000.0
@@ -257,11 +156,6 @@ while running:
 
     actions = input_state.update()
 
-    # if actions["toggle_third_person"]:
-    #     first_person = not first_person
-    #     camera.third_person = not first_person
-    
-
     # -------------
     # Player + Physics
     # -------------
@@ -269,49 +163,33 @@ while running:
     player.process_keyboard(actions, dt)
     physics.step(dt, player)    
 
-    # Fixed 60Hz cloth simulation
-    cloth_accumulator += dt
-    while cloth_accumulator >= cloth_fixed_dt:
-        cloth.step(cloth_fixed_dt, iterations=1)
-        cloth_accumulator -= cloth_fixed_dt
+    # Update world components
+    for obj in world.objects:
+        obj.update(dt)
 
-    # ---- Update Cloth Mesh Vertices ----
-    updated_vertices = np.array(cloth.points, dtype=np.float32)
-    cloth_mesh.update_positions(updated_vertices)
-
-    # -------------
-    # Audio Update
-    # -------------
-    # Sync audio source positions + apply soft distance fade
-    for obj, source in audio.object_sources.items():
-        source.set_position(obj.transform.position)
-
-        config = obj.audio_config
-        if not config:
-            continue
-
-        max_distance = config.get("max_distance", 10.0)
-        base_gain = config.get("volume", 100.0) / 100.0
-        fade_ratio = config.get("fade_ratio", 0.4)
-
-        source.apply_distance_fade(
-            camera.player.position,
-            max_distance,
-            base_gain,
-            fade_ratio
-        )
-
+    # Update audio listener (camera position & orientation)
     audio.update(camera)
-    
+
     # -------------
-    # update mannequin
     # -------------
     # if mannequin.animator is not None:
-    #     mannequin.animator.update(dt)w
+    #     mannequin.animator.update(dt)
 
     # -------------
     # Render passes
     # -------------
+    # Collect LightComponents and update renderer light data
+
+    for obj in world.objects:
+        light_comp = obj.get_component(LightComponent)
+        if light_comp:
+            data = light_comp.get_light_data()
+            if data:
+                renderer.light_pos = data["position"]
+                renderer.light_color = data["color"]
+                renderer.light_intensity = data["intensity"]
+                renderer.light_ambient = data["ambient"]
+
     light_space_matrix = renderer.point_light_matrices()
 
     # Shadow pass
@@ -321,27 +199,21 @@ while running:
     renderer.render_ssao_pass(camera, scene_objects)
 
     # Final lighting pass
-    # Render scene normally (with culling)
     renderer.render_final_pass(None, player, camera, scene_objects)
-
-    # Ensure cloth renders double-sided
-    GL.glDisable(GL.GL_CULL_FACE)
-    cloth_mesh.draw()
-    GL.glEnable(GL.GL_CULL_FACE)
 
     # Debug grid
     renderer.draw_debug_grid(camera, WIDTH / HEIGHT, size=50.0)
 
-    #volumetric light pass
+    # #volumetric light pass
     renderer.render_volumetric_pass(camera)
     
-    # Bloom pass
+    # # Bloom pass
     renderer.render_bloom_pass()
 
     # -------------
     # DEBUG OBJECT CONTROL (generic)
     # -------------
-    target_transform = debug_controller.update(sun, world.objects)
+    target_transform = debug_controller.update(world.objects)
 
     if target_transform is not None:
         object_position = target_transform.position
@@ -399,11 +271,6 @@ while running:
                     color = (0, 1, 0)
 
                 gizmo.draw_lines(vp, np.array(lines), color=color)
-
-        # ---- Cloth Debug ----
-        cloth_lines = cloth.get_debug_lines()
-        if cloth_lines is not None and len(cloth_lines) > 0:
-            gizmo.draw_lines(vp, cloth_lines, color=(0.2, 0.6, 1.0))
 
     pygame.display.flip()
 

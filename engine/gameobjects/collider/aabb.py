@@ -22,7 +22,7 @@ class AABBCollider:
         world_size = self.size * transform.scale
 
         # Small safety margin to prevent side-clipping (in meters)
-        collision_margin = 0.3
+        collision_margin = 0.4
 
         half = (world_size * 0.5) + collision_margin
 

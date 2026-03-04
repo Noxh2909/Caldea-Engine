@@ -2,6 +2,7 @@
 import json
 from pathlib import Path
 
+# Note: World class is responsible for loading levels and creating game objects based on JSON data.
 from gameobjects.mesh import MeshRegistry
 from gameobjects.object import GameObject
 from gameobjects.transform import Transform
@@ -9,14 +10,19 @@ from gameobjects.collider.aabb import AABBCollider
 from gameobjects.material_lookup import Material
 from gameobjects.material_lookup import MaterialRegistry
 
+from components.audio_component import AudioComponent
+from components.light_component import LightComponent
+from components.physics_component import ClothComponent
+
 
 class World:
-    def __init__(self, level_path: str | None = None):
+    def __init__(self, audio_engine, level_path: str | None = None):
         """
-        Docstring für __init__
+        World class that holds all game objects, including static objects, lights, and the sun.
 
         :param self: The object itself
         """
+        self.audio_engine = audio_engine
         self.objects: list[GameObject] = []
         self.static_objects: list[GameObject] = []
         self.lights: list[GameObject] = []
@@ -25,24 +31,20 @@ class World:
             self.load_level(level_path)
 
     def _create_object(self, data: dict):
-        """
-        Docstring für _create_object
 
-        :param self: The object itself
-        :param data: dict with object parameters
-        :type data: dict
-        """
         # ---------- transform ----------
-        position = data.get("position", [0, 0, 0])
-        scale = data.get("scale", [1, 1, 1])
-        transform = Transform(position=position, scale=scale)
-        transform.position[1] += transform.scale[1] * 0.5 
+        transform = Transform(
+            position=data.get("position", [0, 0, 0]),
+            scale=data.get("scale", [1, 1, 1])
+        )
 
         # ---------- mesh ----------
-        mesh = None
         mesh_name = data.get("mesh")
-        if mesh_name:
-            mesh = MeshRegistry.get(mesh_name)
+        
+        if mesh_name == "cloth":
+            mesh = None  
+        else:
+            mesh = MeshRegistry.get(mesh_name) if mesh_name else None
 
         # ---------- material ----------
         material = None
@@ -55,56 +57,62 @@ class World:
             base_name = material_data.get("name")
             if base_name:
                 base_material = MaterialRegistry.get(base_name)
-
                 material = Material(
+                    double_sided=material_data.get("double_sided", False),
                     color=base_material.color,
                     texture=base_material.texture,
-                    emissive=base_material.emissive,
-                    texture_scale_mode=material_data.get(
-                        "texture_scale_mode", "default"
-                    ),
+                    texture_scale_mode=material_data.get("texture_scale_mode", "default"),
                     texture_scale_value=material_data.get("texture_scale_value"),
+                    shininess=material_data.get("shininess"),
+                    specular_strength=material_data.get("specular_strength"),
                 )
 
         # ---------- collider ----------
-        collider = None
         collider_size = data.get("collider")
-        if collider_size:
-            collider = AABBCollider(size=collider_size)
+        collider = AABBCollider(size=collider_size) if collider_size else None
 
-        # ---------- light ----------
-        light = data.get("light")
-
-        # ---------- audio ----------
-        audio_data = data.get("audio")
-        
-        # ---------- obj_name ----------
+        # ---------- name -----------
         obj_name = data.get("obj_name")
 
+        # ---------- object ----------
         obj = GameObject(
-            mesh=mesh,
             transform=transform,
+            mesh=mesh,
             material=material,
             collider=collider,
-            light=light,
-            audio_config=audio_data,
             obj_name=obj_name
         )
 
         self.objects.append(obj)
 
-        # Light-emitting objects (can be multiple)
-        if light is not None:
-            self.lights.append(obj)
-            if self.sun is None:
-                self.sun = obj
+        # ---------- components ---------- 
+        audio_data = data.get("audio")
+        if audio_data:
+            obj.add_component(AudioComponent(self.audio_engine, audio_data))
+
+        light_data = data.get("light")
+        if light_data:
+            obj.add_component(LightComponent(light_data))
+
+        cloth_data = data.get("cloth")
+        if cloth_data:
+            obj.add_component(
+                ClothComponent(
+                    width=cloth_data.get("width"),
+                    height=cloth_data.get("height"),
+                    segments_x=cloth_data.get("segments_x"),
+                    segments_y=cloth_data.get("segments_y"),
+                    gravity=cloth_data.get("gravity"),
+                    wind_rate=cloth_data.get("wind_rate"),
+                )
+            )
 
         if collider is not None:
             self.static_objects.append(obj)
 
     def load_level(self, level_path: str):
         """
-        Docstring für load_level
+        Loads a level from a JSON file and creates game objects.
 
         :param self: The object itself
         :param level_path: Path to the level file

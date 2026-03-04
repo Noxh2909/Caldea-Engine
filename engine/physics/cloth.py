@@ -15,6 +15,7 @@ class Cloth:
         segments_x=10,
         segments_y=10,
         gravity=(0, -9.81, 0),
+        wind_strength=1.0
     ):
         self.origin = np.array(origin, dtype=np.float32)
         self.width = width
@@ -22,6 +23,7 @@ class Cloth:
         self.segments_x = segments_x
         self.segments_y = segments_y
         self.gravity = np.array(gravity, dtype=np.float32)
+        self.wind_strength = wind_strength
 
         self.points = []
         self.prev_points = []
@@ -29,7 +31,6 @@ class Cloth:
         self.constraints = []
 
         self.time = 0.0
-        self.wind_strength = 4.0
 
         # Per-point wind variation (phase + speed)
         self.wind_phase = []
@@ -81,7 +82,7 @@ class Cloth:
         rest_length = np.linalg.norm(p2 - p1)
         self.constraints.append((i1, i2, rest_length))
 
-    def step(self, dt, iterations=4):
+    def step(self, dt, iterations=1):
         damping = 0.995
 
         self.time += dt
@@ -165,9 +166,30 @@ class Cloth:
 
         indices = np.array(indices, dtype=np.uint32)
 
-        # Flat normals (temporary)
         normals = np.zeros_like(vertices)
-        normals[:, 2] = 1.0
+
+        for i in range(0, len(indices), 3):
+            i0 = indices[i]
+            i1 = indices[i + 1]
+            i2 = indices[i + 2]
+
+            v0 = vertices[i0]
+            v1 = vertices[i1]
+            v2 = vertices[i2]
+
+            edge1 = v1 - v0
+            edge2 = v2 - v0
+
+            face_normal = np.cross(edge1, edge2)
+
+            normals[i0] += face_normal
+            normals[i1] += face_normal
+            normals[i2] += face_normal
+
+        # Normalize
+        lengths = np.linalg.norm(normals, axis=1)
+        lengths[lengths == 0] = 1.0
+        normals /= lengths[:, np.newaxis]
 
         return vertices, normals, uvs, indices
 

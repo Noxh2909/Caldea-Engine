@@ -6,7 +6,9 @@
       "material": {
         "name": "wood",
         "texture_scale_mode": "triplanar",
-        "texture_scale_value": 0.1
+        "texture_scale_value": 0.1,
+        "shininess": 32.0,
+        "specular_strength": 0.5
       },
       "position": [4, 0, 3],
       "scale": [0.5, 10, 10],
@@ -18,7 +20,9 @@
       "material": {
         "name": "wood",
         "texture_scale_mode": "triplanar",
-        "texture_scale_value": 0.1
+        "texture_scale_value": 0.1,
+        "shininess": 32.0,
+        "specular_strength": 0.5
       },
       "position": [-6, 0, 3],
       "scale": [0.5, 10, 10],
@@ -30,19 +34,23 @@
       "material": {
         "name": "wood",
         "texture_scale_mode": "triplanar",
-        "texture_scale_value": 0.1
+        "texture_scale_value": 0.1,
+        "shininess": 32.0,
+        "specular_strength": 0.5
       },
       "position": [-1, 0, 8],
       "scale": [10, 10, 0.5],
       "collider": [1, 1, 1]
     },
      {
-      "obj_name": "MonaLisa",
+      "obj_name": "Picture",
       "mesh": "cube",
       "material": {
         "name": "monalisa",
         "texture_scale_mode": "default",
-        "texture_scale_value": 0.2
+        "texture_scale_value": 0.2,
+         "shininess": 16.0,
+         "specular_strength": 0.3
       },
       "position": [-1, 4, 7.75],
       "scale": [3, 3, 0.01]
@@ -53,7 +61,9 @@
       "material": {
         "name": "marble",
         "texture_scale_mode": "default",
-        "texture_scale_value": 1.0
+        "texture_scale_value": 1.0,
+        "shininess": 64.0,
+        "specular_strength": 0.9
       },
       "position": [-1, 9.5, 3],
       "scale": [10, 0.5, 10],
@@ -79,7 +89,9 @@
       "material": {
         "name": "jukebox",
         "texture_scale_mode": "default",
-        "texture_scale_value": 1.0
+        "texture_scale_value": 1.0,
+        "shininess": 16.0,
+        "specular_strength": 0.3
       },
       "position": [-1, 0.59, 6.9],
       "scale": [1.6, 1.6, 1.6],
@@ -87,10 +99,32 @@
       "audio": {
         "path": "shadow_mono.wav",
         "loop": true,
-        "volume": 60.0,
+        "volume": 70.0,
         "max_distance": 50.0,
         "rolloff": 1.5,
         "fade_ratio": 0.5
+      }
+    },
+    {
+      "obj_name": "curtain",
+      "mesh": "cloth",
+      "material": {
+        "name": "curtain",
+        "double_sided": true,
+        "texture_scale_mode": "default",
+        "texture_scale_value": 1.0,
+        "shininess": 8.0,
+        "specular_strength": 0.1
+      },
+      "position": [-1, 2.0, -1.0],
+      "scale": [1.0, 1.0, 1.0],
+      "cloth": {
+        "width": 2.0,
+        "height": 4.0,
+        "segments_x": 15,
+        "segments_y": 15,
+        "gravity": [0, -9.81, 0],
+        "wind_rate": 2.0
       }
     },
     {
@@ -98,9 +132,8 @@
       "mesh": "sphere",
       "material": {
         "name": "sun",
-        "is_emissive": true,
-        "shininess": 0.0,
-        "specular_strength": 0.0
+        "shininess": 100.0,
+        "specular_strength": 1.0
       },
       "position": [2.90, 5.40, 7.00],
       "scale": [1.0, 1.0, 1.0],

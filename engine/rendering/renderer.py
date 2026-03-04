@@ -909,7 +909,6 @@ class Renderer:
         self.g_object_color_loc = GL.glGetUniformLocation(self.geometry_program, "objectColor")
 
         # Final shader uniforms
-        self.final_emissive_loc = GL.glGetUniformLocation(self.final_program, "u_is_emissive")
         self.final_is_skinned_loc = GL.glGetUniformLocation(self.final_program, "u_is_skinned")
         self.final_model_loc = GL.glGetUniformLocation(self.final_program, "model")
         self.final_view_loc = GL.glGetUniformLocation(self.final_program, "view")
@@ -928,6 +927,7 @@ class Renderer:
         self.final_soft_shadows_loc = GL.glGetUniformLocation(self.final_program, "u_softShadows")
         self.final_pcf_samples_loc = GL.glGetUniformLocation(self.final_program, "u_pcfSamples")
         self.final_pcf_radius_loc = GL.glGetUniformLocation(self.final_program, "u_pcfRadius")
+        self.final_double_sided_loc = GL.glGetUniformLocation(self.final_program, "u_double_sided")
                     
     # -----------------------
     # Shadow mapping
@@ -990,7 +990,7 @@ class Renderer:
         GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
 
         GL.glEnable(GL.GL_DEPTH_TEST)
-        GL.glEnable(GL.GL_CULL_FACE)
+        # GL.glEnable(GL.GL_CULL_FACE)
         GL.glCullFace(GL.GL_FRONT)
 
         GL.glUseProgram(self.depth_program)
@@ -1016,10 +1016,22 @@ class Renderer:
 
         for obj in scene_objects:
             GL.glUniformMatrix4fv(
-                self.depth_model_loc, 1, GL.GL_TRUE, obj.transform.matrix()
+                self.depth_model_loc,
+                1,
+                GL.GL_TRUE,
+                obj.transform.matrix(),
             )
+            if getattr(obj.material, "double_sided", False):
+                # For thin geometry like cloth:
+                # Render BOTH sides into shadow map
+                GL.glDisable(GL.GL_CULL_FACE)
+            else:
+                GL.glEnable(GL.GL_CULL_FACE)
+                GL.glCullFace(GL.GL_FRONT)
+
             obj.mesh.draw()
 
+        GL.glEnable(GL.GL_CULL_FACE)
         GL.glCullFace(GL.GL_BACK)
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
     
@@ -1115,6 +1127,12 @@ class Renderer:
             )
 
             GL.glUniform3f(self.g_object_color_loc, 1.0, 1.0, 1.0)
+
+            if getattr(obj.material, "double_sided", False):
+                GL.glDisable(GL.GL_CULL_FACE)
+            else:
+                GL.glEnable(GL.GL_CULL_FACE)
+                GL.glCullFace(GL.GL_BACK)
 
             obj.mesh.draw()
 
@@ -1544,14 +1562,15 @@ class Renderer:
                 obj.material.shininess
             )
 
-            emissive = getattr(obj.material, "is_emissive", False)
-            GL.glUniform1i(
-                self.final_emissive_loc,
-                1 if emissive else 0
-            )
+            GL.glUniform1i(self.final_double_sided_loc, 1 if getattr(obj.material, "double_sided", False) else 0)
+
+            if getattr(obj.material, "double_sided", False):
+                GL.glDisable(GL.GL_CULL_FACE)
+            else:
+                GL.glEnable(GL.GL_CULL_FACE)
+                GL.glCullFace(GL.GL_BACK)
 
             obj.mesh.draw()
-
         # -----------------------
         # Draw player mannequin
         # -----------------------
