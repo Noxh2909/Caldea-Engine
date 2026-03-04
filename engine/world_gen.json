@@ -117,11 +117,11 @@
         "shininess": 8.0,
         "specular_strength": 0.1
       },
-      "position": [-1, 2.0, -1.0],
+      "position": [-2.8, 4.4, 0.0],
       "scale": [1.0, 1.0, 1.0],
       "cloth": {
-        "width": 2.0,
-        "height": 4.0,
+        "width": 9.0,
+        "height": 9.0,
         "segments_x": 15,
         "segments_y": 15,
         "gravity": [0, -9.81, 0],
