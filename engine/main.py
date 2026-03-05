@@ -2,7 +2,9 @@ import pygame
 import numpy as np
 from OpenGL import GL
 
-from rendering.renderer import Renderer, RenderObject
+from rendering.lighting_renderer import LightRenderer, RenderObject
+from rendering.debug_renderer import DebugRenderer
+
 from world import World
 from physics.world_physics import PhysicsWorld
 from input import InputState
@@ -20,15 +22,16 @@ from gameobjects.player.animator import Animator
 from gameobjects.vertec import plane_vertices
 
 from audio.audio_enigne import AudioEngine
+from components.light_component import LightComponent
 
 from debug.gizmo import DebugGizmo
 from debug.object_control import DebugObjectController
-from components.light_component import LightComponent
+from debug.ui.debug_window import UIManager
 
 
-# ====================
-# Pygame / OpenGL init
-# ====================
+# ============================================================
+# Pygame / OpenGL Initialization
+# ============================================================
 
 pygame.init()
 pygame.display.set_caption("Caldea Engine")
@@ -52,26 +55,29 @@ if version:
     print("OpenGL:", version.decode())
 
 
-# ====================
-# Core engine objects
-# ====================
+# ============================================================
+# Core Engine Objects
+# ============================================================
 
 clock = pygame.time.Clock()
 input_state = InputState()
 physics = PhysicsWorld()
 player = Player()
 camera = Camera(player, physics)
-renderer = Renderer(width=WIDTH, height=HEIGHT)
+renderer = LightRenderer(width=WIDTH, height=HEIGHT)
+debug_renderer = DebugRenderer()
 audio = AudioEngine()
 world = World(audio, "engine/world_gen.json")
+
 gizmo = DebugGizmo()
 debug_controller = DebugObjectController()
+debug_ui = UIManager()
 
-# ====================
-# Static Plane
-# ====================
- 
-# Create Physics Plane
+
+# ============================================================
+# Static Physics Plane
+# ============================================================
+
 plane_game_object = GameObject(
     mesh=None,
     transform=Transform(position=(0.0, 0.05, 0.0)),
@@ -81,20 +87,21 @@ plane_game_object = GameObject(
 
 physics.add_static(plane_game_object)
 
-# Create Render Plane
 plane_mesh = Mesh(plane_vertices)
 
-# ====================
-# Register world colliders
-# ====================
+
+# ============================================================
+# Register World Colliders
+# ============================================================
 
 for obj in world.objects:
     if obj.collider is not None:
         physics.add_static(obj)
 
-# ====================
-# Load mannequin (FBX)
-# ====================
+
+# ============================================================
+# Load Player Mannequin (FBX)
+# ============================================================
 
 mesh, skeleton, material, animations = create_mannequin_from_fbx("assets/models/Frank")
 
@@ -107,18 +114,18 @@ mannequin = Mannequin(
     scale=0.018,
 )
 
-# ====================
-# Animator
-# ====================
 
-# Nimm die erste Animation (z. B. Walk / Take 001)
+# ============================================================
+# Animator Setup
+# ============================================================
+
 anim_clip = list(animations.values())[0]
-
 mannequin.animator = Animator(skeleton=mannequin.skeleton, clip=anim_clip, loop=True)
 
-# ====================
-# Scene object list
-# ====================
+
+# ============================================================
+# Scene Object List (Render Layer)
+# ============================================================
 
 scene_objects: list[RenderObject] = []
 
@@ -132,18 +139,20 @@ for obj in world.objects:
             )
         )
 
-# ====================
+
+# ============================================================
 # Main Loop
-# ====================
+# ============================================================
 
 running = True
 
 while running:
     dt = clock.tick(240) / 1000.0
 
-    # -------------
-    # Events
-    # -------------
+    # ------------------------------------------------------------
+    # Event Handling
+    # ------------------------------------------------------------
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -156,29 +165,22 @@ while running:
 
     actions = input_state.update()
 
-    # -------------
+    # ------------------------------------------------------------
     # Player + Physics
-    # -------------
+    # ------------------------------------------------------------
+
     player.prev_position = player.position.copy()
     player.process_keyboard(actions, dt)
-    physics.step(dt, player)    
+    physics.step(dt, player)
 
-    # Update world components
     for obj in world.objects:
         obj.update(dt)
 
-    # Update audio listener (camera position & orientation)
     audio.update(camera)
 
-    # -------------
-    # -------------
-    # if mannequin.animator is not None:
-    #     mannequin.animator.update(dt)
-
-    # -------------
-    # Render passes
-    # -------------
-    # Collect LightComponents and update renderer light data
+    # ------------------------------------------------------------
+    # Light Synchronization
+    # ------------------------------------------------------------
 
     for obj in world.objects:
         light_comp = obj.get_component(LightComponent)
@@ -192,24 +194,30 @@ while running:
 
     light_space_matrix = renderer.point_light_matrices()
 
-    # Shadow pass
-    renderer.render_shadow_pass(scene_objects, avatars=[])
+    # ------------------------------------------------------------
+    # Render Pipeline
+    # ------------------------------------------------------------
 
-    # SSAO pass
+    renderer.render_shadow_pass(scene_objects, avatars=[])
     renderer.render_ssao_pass(camera, scene_objects)
 
-    # Final lighting pass
-    renderer.render_final_pass(None, player, camera, scene_objects, WIDTH, HEIGHT)
+    renderer.render_final_pass(
+        None,
+        player,
+        camera,
+        scene_objects,
+        WIDTH,
+        HEIGHT,
+        debug_renderer=debug_renderer,
+    )
 
-    # #volumetric light pass
     renderer.render_volumetric_pass(camera)
-    
-    # # Bloom pass
     renderer.render_bloom_pass()
 
-    # -------------
-    # DEBUG OBJECT CONTROL (generic)
-    # -------------
+    # ------------------------------------------------------------
+    # Debug Object Control
+    # ------------------------------------------------------------
+
     target_transform = debug_controller.update(world.objects)
 
     if target_transform is not None:
@@ -219,7 +227,6 @@ while running:
         object_position = (0.0, 0.0, 0.0)
         object_scale = (0.0, 0.0, 0.0)
 
-    # Resolve current object name for HUD
     current_name = "None"
     if debug_controller.targets:
         current_obj = debug_controller.targets[debug_controller.current_index]
@@ -227,17 +234,19 @@ while running:
         if not current_name:
             current_name = type(current_obj).__name__
 
-    renderer.render_debug_hud(
+    debug_renderer.render_debug_hud(
         clock,
         player,
-        obj={"target": current_name},
-        obj_pos=object_position,
-        obj_scale=object_scale,
+        {"target": current_name},
+        object_position,
+        object_scale,
+        extra_lines=debug_ui.get_lines(),
     )
-    
-    # -------------
+
+    # ------------------------------------------------------------
     # Collider Gizmos
-    # -------------
+    # ------------------------------------------------------------
+
     if gizmo.enabled:
         vp = camera.get_projection_matrix(WIDTH / HEIGHT) @ camera.get_view_matrix()
 
@@ -246,9 +255,18 @@ while running:
                 corners = obj.collider.get_corners(obj.transform)
 
                 edges = [
-                    (0,1),(1,2),(2,3),(3,0),
-                    (4,5),(5,6),(6,7),(7,4),
-                    (0,4),(1,5),(2,6),(3,7)
+                    (0, 1),
+                    (1, 2),
+                    (2, 3),
+                    (3, 0),
+                    (4, 5),
+                    (5, 6),
+                    (6, 7),
+                    (7, 4),
+                    (0, 4),
+                    (1, 5),
+                    (2, 6),
+                    (3, 7),
                 ]
 
                 lines = []
@@ -256,12 +274,12 @@ while running:
                     lines.append(corners[i0])
                     lines.append(corners[i1])
 
-                # Get currently selected object
                 selected_obj = None
                 if debug_controller.targets:
-                    selected_obj = debug_controller.targets[debug_controller.current_index]
+                    selected_obj = debug_controller.targets[
+                        debug_controller.current_index
+                    ]
 
-                # Choose color
                 if obj is selected_obj:
                     color = (1, 0, 0)
                 else:
@@ -270,6 +288,11 @@ while running:
                 gizmo.draw_lines(vp, np.array(lines), color=color)
 
     pygame.display.flip()
+
+
+# ============================================================
+# Shutdown
+# ============================================================
 
 audio.shutdown()
 pygame.quit()

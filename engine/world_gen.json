@@ -139,7 +139,7 @@
         "segments_x": 15,
         "segments_y": 15,
         "gravity": [0, -9.81, 0],
-        "wind_rate": 1.0
+        "wind_rate": 2.0
       }
     },
     {

@@ -10,20 +10,19 @@
     "bias": 0.02
   }, 
   "shadow": {
-    "soft_shadows": true,
     "resolution": 1024,
     "near_plane": 0.1,
     "far_plane": 30.0,
-    "pcf_samples": 8,
-    "pcf_radius": 0.02, 
-    
-    "volumetric": {
-      "enabled": true,
-      "samples": 40,
-      "density": 0.9,
-      "decay": 0.96,
-      "weight": 0.065,
-      "exposure": 0.32
-    }
+    "soft_shadows": true,
+    "pcf_samples": 24,
+    "pcf_radius": 0.02
+  }, 
+  "volumetric": {
+    "enabled": true,
+    "samples": 40,
+    "density": 0.9,
+    "decay": 0.96,
+    "weight": 0.065,
+    "exposure": 0.32
   }
 }
