@@ -1,10 +1,15 @@
 # Caldea Engine
 
-<p align="center">
-  <img src="caldea_engine_icon.png" width="100" alt="Caldea Icon" />
-</p>
-
 ---
 
-© 2026  
-Currently under development by **Noah Kogge**
+<table>
+  <tr>
+    <td>
+      © 2026<br>
+      Currently under development by <b>Noah Kogge</b>
+    </td>
+    <td align="right">
+      <img src="caldea_engine_icon.png" width="120" alt="Caldea Icon" />
+    </td>
+  </tr>
+</table>
