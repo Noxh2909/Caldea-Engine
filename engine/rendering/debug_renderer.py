@@ -11,18 +11,15 @@ _utils = RenderUtils()
 # Shader Loading
 # ============================================================
 
+# fmt: off
+# debug shader sources
 DEBUG_VERTEX_SHADER_SRC = _utils.load_shader("engine/rendering/debug_shader/debug.vert")
-DEBUG_FRAGMENT_SHADER_SRC = _utils.load_shader(
-    "engine/rendering/debug_shader/debug.frag"
-)
+DEBUG_FRAGMENT_SHADER_SRC = _utils.load_shader("engine/rendering/debug_shader/debug.frag")
 
-PLANE_VERTEX_SHADER_SRC = _utils.load_shader(
-    "engine/rendering/debug_shader/grid_plane.vert"
-)
-PLANE_FRAGMENT_SHADER_SRC = _utils.load_shader(
-    "engine/rendering/debug_shader/grid_plane.frag"
-)
-
+# grid plane shader sources
+PLANE_VERTEX_SHADER_SRC = _utils.load_shader("engine/rendering/debug_shader/grid_plane.vert")
+PLANE_FRAGMENT_SHADER_SRC = _utils.load_shader("engine/rendering/debug_shader/grid_plane.frag")
+# fmt: on
 
 # ============================================================
 # Debug Renderer
