@@ -5,12 +5,11 @@ import numpy as np
 
 from rendering.utils.renderer_utils import RenderUtils
 
+_utils = RenderUtils()
 
 # ============================================================
 # Shader Loading
 # ============================================================
-
-_utils = RenderUtils()
 
 DEBUG_VERTEX_SHADER_SRC = _utils.load_shader("engine/rendering/debug_shader/debug.vert")
 DEBUG_FRAGMENT_SHADER_SRC = _utils.load_shader(
@@ -174,7 +173,6 @@ class DebugRenderer:
         if extra_lines:
             lines.append("-----")
             lines.extend(extra_lines)
-
 
         x, y = 15, 15
         for line in lines:

@@ -13,58 +13,33 @@ utils = RenderUtils()
 # Shader Sources
 # =========================
 
+# fmt: off
 # Depth Shader for shadow mapping
-DEPTH_VERTEX_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/depth.vert"
-)
-DEPTH_FRAGMENT_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/depth.frag"
-)
-DEPTH_GEOMETRY_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/depth.geom"
-)
+DEPTH_VERTEX_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/depth.vert")
+DEPTH_FRAGMENT_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/depth.frag")
+DEPTH_GEOMETRY_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/depth.geom")
 
 # Geometry Pass Shader for SSAO
-GEOMETRY_VERTEX_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/geometry.vert"
-)
-GEOMETRY_FRAGMENT_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/geometry.frag"
-)
+GEOMETRY_VERTEX_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/geometry.vert")
+GEOMETRY_FRAGMENT_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/geometry.frag")
 
 # SSAO Shader
 SSAO_VERTEX_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/ssao.vert")
-SSAO_FRAGMENT_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/ssao.frag"
-)
-SSAO_BLUR_FRAGMENT_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/ssao_blur.frag"
-)
+SSAO_FRAGMENT_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/ssao.frag")
+SSAO_BLUR_FRAGMENT_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/ssao_blur.frag")
 
 # VOLUMETRIC LIGHTING Shader
-VOLUMETRIC_LIGHT_FRAGMENT_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/volumetric.frag"
-)
+VOLUMETRIC_LIGHT_FRAGMENT_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/volumetric.frag")
 
 # BLOOM Shader
-BLOOM_BLUR_FRAGMENT_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/bloom_blur.frag"
-)
-BLOOM_BRIGHT_FRAGMENT_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/bloom_bright.frag"
-)
-BLOOM_FINAL_FRAGMENT_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/bloom_final.frag"
-)
+BLOOM_BLUR_FRAGMENT_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/bloom_blur.frag")
+BLOOM_BRIGHT_FRAGMENT_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/bloom_bright.frag")
+BLOOM_FINAL_FRAGMENT_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/bloom_final.frag")
 
 # Final Shader for rendering to screen
-FINAL_VERTEX_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/final.vert"
-)
-FINAL_FRAGMENT_SHADER_SRC = utils.load_shader(
-    "engine/rendering/lighting_shader/final.frag"
-)
-
+FINAL_VERTEX_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/final.vert")
+FINAL_FRAGMENT_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/final.frag")
+# fmt: on
 
 # =========================
 # Renderer Class
