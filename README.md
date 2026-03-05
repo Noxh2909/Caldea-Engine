@@ -1,7 +1,8 @@
-<h1>
-  Caldea Engine
-  <img src="caldea_engine_icon.png" width="120" align="right" alt="Caldea Icon" />
-</h1>
+<p align="center">
+  <img src="caldea_engine_icon.png" width="180" alt="Caldea Icon" />
+</p>
+
+# Caldea Engine
 
 © 2026  
-Currently under development by <b>Noah Kogge</b>
+Currently under development by **Noah Kogge**
