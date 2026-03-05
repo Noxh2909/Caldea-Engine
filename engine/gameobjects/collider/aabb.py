@@ -2,7 +2,7 @@ import numpy as np
 
 
 class AABBCollider:
-    def __init__(self, size=(1, 1, 1)):
+    def __init__(self, size=None):
         """
         Docstring für __init__
 

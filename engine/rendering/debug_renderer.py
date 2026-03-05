@@ -143,8 +143,6 @@ class DebugRenderer:
         :param obj_scale: scale vector
         :param extra_lines: optional additional debug lines
         """
-        if not self.debug_enabled:
-            return
 
         GL.glDisable(GL.GL_DEPTH_TEST)
         GL.glDisable(GL.GL_CULL_FACE)
@@ -159,13 +157,19 @@ class DebugRenderer:
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.debug_tex)
 
+        # Always show FPS
         lines = [
-            f"FPS: {clock.get_fps():.1f}",
-            f"Player Pos: {player.position[0]:.2f}, {player.position[1]:.2f}, {player.position[2]:.2f}",
-            f"Controlled object: {obj['target']}",
-            f"Object Pos: {obj_pos[0]:.2f}, {obj_pos[1]:.2f}, {obj_pos[2]:.2f}",
-            f"Object Scale: {obj_scale[0]:.2f}, {obj_scale[1]:.2f}, {obj_scale[2]:.2f}",
+            f"FPS: {clock.get_fps():.1f}"
         ]
+
+        # Only show extended debug info when debug mode is enabled
+        if self.debug_enabled:
+            lines.extend([
+                f"Player Pos: {player.position[0]:.2f}, {player.position[1]:.2f}, {player.position[2]:.2f}",
+                f"Controlled object: {obj['target']}",
+                f"Object Pos: {obj_pos[0]:.2f}, {obj_pos[1]:.2f}, {obj_pos[2]:.2f}",
+                f"Object Scale: {obj_scale[0]:.2f}, {obj_scale[1]:.2f}, {obj_scale[2]:.2f}",
+            ])
 
         if extra_lines:
             lines.append("-----")

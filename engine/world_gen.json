@@ -67,7 +67,8 @@
          "specular_strength": 0.3
       },
       "position": [-1, 4, 7.75],
-      "scale": [3, 3, 0.01]
+      "scale": [3, 3, 0.01],
+      "collider": [1, 1, 0.5]
     },
     {
       "obj_name": "Ceiling",
@@ -152,6 +153,7 @@
       },
       "position": [2.90, 5.40, 7.00],
       "scale": [1.0, 1.0, 1.0],
+      "collider": [0, 0, 0],
       "light": {
         "ambient_strength": 0.08,
         "direction": [0.0, 1.0, 0.0],
