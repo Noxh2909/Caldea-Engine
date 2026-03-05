@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Keyframe:
     def __init__(self, time, translation, rotation):
         self.time = time

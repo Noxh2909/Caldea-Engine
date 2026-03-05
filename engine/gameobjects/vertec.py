@@ -1,5 +1,6 @@
 import numpy as np
 
+# fmt: off
 plane_vertices = np.array([
     -50.0, 0.0, -50.0,  0.0, 1.0, 0.0,  0.0, 0.0,
      50.0, 0.0, -50.0,  0.0, 1.0, 0.0,  1.0, 0.0,
@@ -131,3 +132,4 @@ def generate_cylinder(radius=0.0, height=0.0, segments=0):
     return np.array(verts, dtype=np.float32)
 
 cylinder_vertices = generate_cylinder(radius=1.0, height=5.0, segments=32)
+# fmt: on

@@ -51,7 +51,7 @@ MATERIAL_TABLE = {
 class Material:
     def __init__(
         self,
-        opacity = 1.0,
+        opacity=1.0,
         double_sided=False,
         color=(1.0, 1.0, 1.0),
         texture=None,

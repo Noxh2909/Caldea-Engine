@@ -40,6 +40,7 @@ class AABBCollider:
         x0, y0, z0 = min_v
         x1, y1, z1 = max_v
 
+        # fmt: off
         return np.array([
             [x0, y0, z0],
             [x1, y0, z0],
@@ -50,3 +51,4 @@ class AABBCollider:
             [x1, y1, z1],
             [x0, y1, z1],
         ], dtype=np.float32)
+        # fmt: on

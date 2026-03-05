@@ -5,6 +5,7 @@ import numpy as np
 import struct
 from typing import Optional
 
+
 class GLBLoader:
     def __init__(self, path: str):
         gltf = GLTF2().load(path)
@@ -68,20 +69,23 @@ class GLBLoader:
         """Build a 4x4 transformation matrix from TRS components."""
         # Create scale matrix
         S = np.diag([scale[0], scale[1], scale[2], 1.0]).astype(np.float32)
-        
+
         # Create rotation matrix from quaternion (x, y, z, w)
         x, y, z, w = rotation
-        R = np.array([
-            [1 - 2*(y*y + z*z), 2*(x*y - w*z), 2*(x*z + w*y), 0],
-            [2*(x*y + w*z), 1 - 2*(x*x + z*z), 2*(y*z - w*x), 0],
-            [2*(x*z - w*y), 2*(y*z + w*x), 1 - 2*(x*x + y*y), 0],
-            [0, 0, 0, 1]
-        ], dtype=np.float32)
-        
+        R = np.array(
+            [
+                [1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y), 0],
+                [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x), 0],
+                [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y), 0],
+                [0, 0, 0, 1],
+            ],
+            dtype=np.float32,
+        )
+
         # Create translation matrix
         T = np.eye(4, dtype=np.float32)
         T[:3, 3] = translation
-        
+
         # Combine: T * R * S
         return T @ R @ S
 
@@ -184,7 +188,9 @@ class GLBLoader:
                 node_idx = ch.target.node
                 node_name = (
                     self.gltf.nodes[node_idx].name
-                    if node_idx is not None and self.gltf.nodes and self.gltf.nodes[node_idx].name
+                    if node_idx is not None
+                    and self.gltf.nodes
+                    and self.gltf.nodes[node_idx].name
                     else f"<node_{node_idx}>"
                 )
                 print(
@@ -235,7 +241,9 @@ class GLBLoader:
                     node_idx = ch.target.node
                     node_name = (
                         self.gltf.nodes[node_idx].name
-                        if node_idx is not None and self.gltf.nodes and self.gltf.nodes[node_idx].name
+                        if node_idx is not None
+                        and self.gltf.nodes
+                        and self.gltf.nodes[node_idx].name
                         else f"<node_{node_idx}>"
                     )
 
@@ -253,7 +261,9 @@ class GLBLoader:
                         node,
                         {
                             "translation": np.zeros(3, dtype=np.float32),
-                            "rotation": np.array([0.0, 0.0, 0.0, 1.0], dtype=np.float32),
+                            "rotation": np.array(
+                                [0.0, 0.0, 0.0, 1.0], dtype=np.float32
+                            ),
                             "scale": np.ones(3, dtype=np.float32),
                         },
                     )
@@ -307,7 +317,11 @@ class GLBLoader:
 
                 # --- Debug: print global matrices for a small chain ---
                 print("[GLB] Global bone matrices (debug):")
-                for name in ("mixamorig1:Hips", "mixamorig1:Spine", "mixamorig1:Spine1"):
+                for name in (
+                    "mixamorig1:Hips",
+                    "mixamorig1:Spine",
+                    "mixamorig1:Spine1",
+                ):
                     for idx, node in enumerate(self.gltf.nodes):
                         if node.name == name and idx in local_matrices:
                             M_global = compute_global(idx)

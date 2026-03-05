@@ -1,11 +1,14 @@
 import numpy as np
 
+
 class Transform:
     def __init__(self, position=(0, 0, 0), scale=(1, 1, 1), yaw=0.0):
         self.position = np.array(position, dtype=np.float32)
         self.scale = np.array(scale, dtype=np.float32)
-        self.position[1] += self.scale[1] * 0.5 # Adjust Y position to account for scale (assuming pivot at bottom)
-        
+        self.position[1] += (
+            self.scale[1] * 0.5
+        )  # Adjust Y position to account for scale (assuming pivot at bottom)
+
         self.yaw = yaw
 
     def matrix(self):
@@ -15,12 +18,14 @@ class Transform:
         c = np.cos(self.yaw)
         s = np.sin(self.yaw)
 
+        # fmt: off
         rot = np.array([
             [ c, 0, s, 0],
             [ 0, 1, 0, 0],
             [-s, 0, c, 0],
             [ 0, 0, 0, 1],
         ], dtype=np.float32)
+        # fmt: on
 
         # Scale
         scale = np.diag([self.scale[0], self.scale[1], self.scale[2], 1.0])

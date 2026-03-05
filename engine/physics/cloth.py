@@ -1,6 +1,7 @@
 import numpy as np
 import random as rm
 
+
 class Cloth:
     """
     2D cloth grid using Position Based Dynamics (PBD).
@@ -15,7 +16,7 @@ class Cloth:
         segments_x=10,
         segments_y=10,
         gravity=(0, -9.81, 0),
-        wind_strength=1.0
+        wind_strength=1.0,
     ):
         self.origin = np.array(origin, dtype=np.float32)
         self.width = width
@@ -110,9 +111,13 @@ class Cloth:
             wx = np.sin(t * 2.0 + y * 1.5 + phase) * 0.5 * self.wind_strength
             wz = np.cos(t * 1.5 + x * 1.2 + phase) * 0.5 * self.wind_strength
 
-            self.points[i][0] = current[0] + velocity[0] + (self.gravity[0] + wx) * dt * dt
+            self.points[i][0] = (
+                current[0] + velocity[0] + (self.gravity[0] + wx) * dt * dt
+            )
             self.points[i][1] = current[1] + velocity[1] + self.gravity[1] * dt * dt
-            self.points[i][2] = current[2] + velocity[2] + (self.gravity[2] + wz) * dt * dt
+            self.points[i][2] = (
+                current[2] + velocity[2] + (self.gravity[2] + wz) * dt * dt
+            )
 
         # Solve constraints (optimized distance computation)
         for _ in range(iterations):
@@ -121,12 +126,14 @@ class Cloth:
                 p2 = self.points[i2]
 
                 delta = p2 - p1
-                dist_sq = delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2]
+                dist_sq = (
+                    delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2]
+                )
 
                 if dist_sq == 0.0:
                     continue
 
-                dist = dist_sq ** 0.5
+                dist = dist_sq**0.5
                 diff = (dist - rest_length) / dist
                 correction = delta * 0.5 * diff
 
@@ -134,7 +141,7 @@ class Cloth:
                     self.points[i1] += correction
                 if not self.fixed[i2]:
                     self.points[i2] -= correction
-                    
+
     def build_mesh_data(self):
         """
         Generate mesh data (positions, normals, uvs, indices)
