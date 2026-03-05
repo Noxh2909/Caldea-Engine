@@ -1,5 +1,4 @@
 import ctypes
-import math
 import random
 import numpy as np
 from OpenGL import GL
@@ -64,7 +63,7 @@ class RenderObject:
 
 
 class LightRenderer:
-    def __init__(self, width=1400, height=800):
+    def __init__(self, camera, width=1400, height=800):
         """
         Initialize the lighting renderer.
 
@@ -81,6 +80,7 @@ class LightRenderer:
         """
         self.width = width
         self.height = height
+        self.camera = camera
         GL.glEnable(GL.GL_DEPTH_TEST)
         GL.glEnable(GL.GL_CULL_FACE)
         GL.glCullFace(GL.GL_BACK)
@@ -104,9 +104,9 @@ class LightRenderer:
         self.cache_uniform_locations()
 
         # set up projection matrices
-        self.projection = utils.perspective(
-            math.radians(120.0), self.width / self.height, 0.1, 100.0
-        )
+        # self.projection = utils.perspective(
+        #     math.radians(120.0), self.width / self.height, 0.1, 100.0
+        # )
 
         self.create_fullscreen_quad()
 
@@ -134,7 +134,7 @@ class LightRenderer:
             GL.glGetUniformLocation(self.ssao_program, "projection"),
             1,
             GL.GL_TRUE,
-            self.projection,
+            self.camera.get_projection_matrix(self.width / self.height),
         )
 
     # -----------------------
@@ -809,11 +809,8 @@ class LightRenderer:
         if far_plane is None:
             far_plane = utils.shadow_cfg.get("far_plane")
 
-        proj = utils.perspective(
-            math.radians(90.0),
-            1.0,
-            near_plane,
-            far_plane,
+        proj = self.camera.get_projection_matrix(
+            aspect=1.0, near=near_plane, far=far_plane, fov=90.0
         )
 
         matrices = []
@@ -1203,7 +1200,7 @@ class LightRenderer:
             GL.glGetUniformLocation(self.volumetric_program, "projection"),
             1,
             GL.GL_TRUE,
-            self.projection,
+            self.camera.get_projection_matrix(self.width / self.height),
         )
 
         GL.glUniformMatrix4fv(
@@ -1347,7 +1344,7 @@ class LightRenderer:
         # =========================
         # Global uniforms
         # =========================
-        GL.glUniformMatrix4fv(self.final_proj_loc, 1, GL.GL_TRUE, self.projection)
+        GL.glUniformMatrix4fv(self.final_proj_loc, 1, GL.GL_TRUE, self.camera.get_projection_matrix(self.width / self.height))
         GL.glUniformMatrix4fv(
             self.final_view_loc, 1, GL.GL_TRUE, camera.get_view_matrix()
         )

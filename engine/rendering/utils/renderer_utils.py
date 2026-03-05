@@ -73,7 +73,7 @@ class RenderUtils:
             cfg = json.load(f)
 
         self.bloom_cfg = cfg.get("bloom", {})
-        self.ssao_cfg  = cfg.get("ssao", {})
+        self.ssao_cfg = cfg.get("ssao", {})
         self.shadow_cfg = cfg.get("shadow", {})
         self.volumetric_cfg = cfg.get("volumetric", {})
 
@@ -103,7 +103,9 @@ class RenderUtils:
 
         return shader
 
-    def link_program(self, vertex_src: str, fragment_src: str, geometry_src: Optional[str] = None) -> int:
+    def link_program(
+        self, vertex_src: str, fragment_src: str, geometry_src: Optional[str] = None
+    ) -> int:
         """
         Link OpenGL shader program.
 
@@ -143,26 +145,3 @@ class RenderUtils:
             GL.glDeleteShader(gs)
 
         return program
-
-    # ============================================================
-    # Math Utilities
-    # ============================================================
-
-    def perspective(self, fovy: float, aspect: float, znear: float, zfar: float) -> np.ndarray:
-        """
-        Generate perspective projection matrix.
-
-        :param fovy: Field of view (radians)
-        :param aspect: Aspect ratio
-        :param znear: Near clipping plane
-        :param zfar: Far clipping plane
-        :return: 4x4 projection matrix (float32)
-        """
-        f = 1.0 / math.tan(fovy / 2.0)
-        mat = np.zeros((4, 4), dtype=np.float32)
-        mat[0, 0] = f / aspect
-        mat[1, 1] = f
-        mat[2, 2] = (zfar + znear) / (znear - zfar)
-        mat[2, 3] = (2.0 * zfar * znear) / (znear - zfar)
-        mat[3, 2] = -1.0
-        return mat
