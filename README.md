@@ -1,6 +1,8 @@
 # Caldea Engine
 
-![Caldea Icon](caldea_engine_icon.png)
+<p align="center">
+  <img src="caldea_engine_icon.png" width="100" alt="Caldea Icon" />
+</p>
 
 ---
 
