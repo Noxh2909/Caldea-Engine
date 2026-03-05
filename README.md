@@ -1,6 +1,6 @@
 # Caldea Engine
 
-![Caldea Icon](caldea_icon.png)
+![Caldea Icon](caldea_engine_icon.png)
 
 ---
 
