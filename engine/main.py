@@ -155,7 +155,7 @@ def initialize():
 def main_loop(engine):
     running = True
     while running:
-        dt = engine["clock"].tick(240) / 1000.0
+        dt = engine["clock"].tick(120) / 1000.0
 
         # ------------------------------------------------------------
         # Event Handling

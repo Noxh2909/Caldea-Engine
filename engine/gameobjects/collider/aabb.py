@@ -24,7 +24,7 @@ class AABBCollider:
         # Small safety margin to prevent side-clipping (in meters)
         collision_margin = 0.4
 
-        half = (world_size * 0.5) + collision_margin
+        half = (world_size * 0.5) # + collision_margin
 
         min_v = transform.position - half
         max_v = transform.position + half
