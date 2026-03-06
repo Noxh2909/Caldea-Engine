@@ -67,7 +67,8 @@
          "specular_strength": 0.3
       },
       "position": [-1, 4, 7.75],
-      "scale": [3, 3, 0.01]
+      "scale": [3, 3, 0.01],
+      "collider": [1, 1, 0.5]
     },
     {
       "obj_name": "Ceiling",
@@ -109,7 +110,7 @@
       },
       "position": [-1, 0.59, 6.9],
       "scale": [1.6, 1.6, 1.6],
-      "collider": [1, 1, 1],
+      "collider": [1.0, 1.0, 1.0],
       "audio": {
         "path": "shadow_mono.wav",
         "loop": true,
@@ -139,7 +140,7 @@
         "segments_x": 15,
         "segments_y": 15,
         "gravity": [0, -9.81, 0],
-        "wind_rate": 1.0
+        "wind_rate": 2.0
       }
     },
     {
@@ -152,6 +153,7 @@
       },
       "position": [2.90, 5.40, 7.00],
       "scale": [1.0, 1.0, 1.0],
+      "collider": [1.0, 1.0, 1.0],
       "light": {
         "ambient_strength": 0.08,
         "direction": [0.0, 1.0, 0.0],

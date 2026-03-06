@@ -1,5 +1,7 @@
 class GameObject:
-    def __init__(self, transform, mesh=None, material=None, collider=None, obj_name=None):
+    def __init__(
+        self, transform, mesh=None, material=None, collider=None, obj_name=None
+    ):
         """
         Docstring für __init__
 
@@ -17,22 +19,22 @@ class GameObject:
         self.material = material
         self.collider = collider
         self.obj_name = obj_name or "GameObject(name_placeholder)"
-        
+
         self.components = []
-        
+
     def add_component(self, component):
         component.game_object = self  # Set back-reference
         self.components.append(component)
-        
+
         if hasattr(component, "start"):
             component.start()
-            
+
     def get_component(self, component_type):
         for comp in self.components:
             if isinstance(comp, component_type):
                 return comp
         return None
-    
+
     def update(self, delta_time):
         for comp in self.components:
             if hasattr(comp, "update"):

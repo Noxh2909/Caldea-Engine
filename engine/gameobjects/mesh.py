@@ -22,11 +22,13 @@ class Mesh:
         """
         # --- Build interleaved vertex buffer ---
         if vertices is None:
-            assert positions is not None and normals is not None and uvs is not None, \
-                "positions, normals and uvs are required"
+            assert (
+                positions is not None and normals is not None and uvs is not None
+            ), "positions, normals and uvs are required"
 
-            assert positions.shape[0] == normals.shape[0] == uvs.shape[0], \
-                "positions/normals/uvs vertex count mismatch"
+            assert (
+                positions.shape[0] == normals.shape[0] == uvs.shape[0]
+            ), "positions/normals/uvs vertex count mismatch"
 
             vcount = positions.shape[0]
 
@@ -40,9 +42,9 @@ class Mesh:
 
                 # positions(3) normals(3) uvs(2) weights(4)
                 vertices = np.zeros((vcount, 12), dtype=np.float32)
-                vertices[:, 0:3]  = positions
-                vertices[:, 3:6]  = normals
-                vertices[:, 6:8]  = uvs
+                vertices[:, 0:3] = positions
+                vertices[:, 3:6] = normals
+                vertices[:, 6:8] = uvs
                 vertices[:, 8:12] = bone_weights
 
                 # bone IDs stored separately (uint16)
@@ -79,7 +81,9 @@ class Mesh:
         GL.glBindVertexArray(self.vao)
         # VBO
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL.GL_DYNAMIC_DRAW)
+        GL.glBufferData(
+            GL.GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL.GL_DYNAMIC_DRAW
+        )
 
         # Keep CPU-side copy for efficient dynamic updates
         self._vertex_buffer = vertices.copy()
@@ -98,15 +102,21 @@ class Mesh:
 
         # position (location = 0)
         GL.glEnableVertexAttribArray(0)
-        GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(0))
+        GL.glVertexAttribPointer(
+            0, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(0)
+        )
 
         # normal (location = 1)
         GL.glEnableVertexAttribArray(1)
-        GL.glVertexAttribPointer(1, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(3 * 4))
+        GL.glVertexAttribPointer(
+            1, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(3 * 4)
+        )
 
         # uv (location = 2)
         GL.glEnableVertexAttribArray(2)
-        GL.glVertexAttribPointer(2, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(6 * 4))
+        GL.glVertexAttribPointer(
+            2, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(6 * 4)
+        )
 
         if self.is_skinned and self.bone_ids is not None:
             # bone IDs (location = 3) -- integer attribute
@@ -120,9 +130,7 @@ class Mesh:
             )
 
             GL.glEnableVertexAttribArray(3)
-            GL.glVertexAttribIPointer(
-                3, 4, GL.GL_UNSIGNED_SHORT, 0, ctypes.c_void_p(0)
-            )
+            GL.glVertexAttribIPointer(3, 4, GL.GL_UNSIGNED_SHORT, 0, ctypes.c_void_p(0))
 
             # bone weights (location = 4)
             GL.glEnableVertexAttribArray(4)
@@ -135,19 +143,19 @@ class Mesh:
     def draw(self):
         GL.glBindVertexArray(self.vao)
         if self.has_indices:
-            GL.glDrawElements(GL.GL_TRIANGLES, self.index_count, GL.GL_UNSIGNED_INT, None)
+            GL.glDrawElements(
+                GL.GL_TRIANGLES, self.index_count, GL.GL_UNSIGNED_INT, None
+            )
         else:
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.vertex_count)
         GL.glBindVertexArray(0)
-
 
     def update_positions(self, positions: np.ndarray):
         """
         Efficient bulk update of vertex positions.
         Updates CPU copy and performs a single glBufferSubData call.
         """
-        assert positions.shape[0] == self.vertex_count, \
-            "Position count mismatch"
+        assert positions.shape[0] == self.vertex_count, "Position count mismatch"
 
         # Update CPU-side interleaved buffer (only first 3 floats per vertex)
         reshaped = self._vertex_buffer.reshape(self.vertex_count, self.stride_floats)
@@ -156,10 +164,7 @@ class Mesh:
         # Single GPU upload
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
         GL.glBufferSubData(
-            GL.GL_ARRAY_BUFFER,
-            0,
-            self._vertex_buffer.nbytes,
-            self._vertex_buffer
+            GL.GL_ARRAY_BUFFER, 0, self._vertex_buffer.nbytes, self._vertex_buffer
         )
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
 

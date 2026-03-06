@@ -1,11 +1,12 @@
 from audio.audio_source import AudioSource
 import os
 
+
 class AudioComponent:
     """
     Component for handling 3D audio sources attached to GameObjects.
     """
-    
+
     def __init__(self, audio_engine, config):
         self.audio_engine = audio_engine
         self.config = config
@@ -19,8 +20,7 @@ class AudioComponent:
         full_path = os.path.join("engine/audio/audiosamples", self.config.get("path"))
 
         self.source = AudioSource(
-            path=full_path,
-            position=self.game_object.transform.position
+            path=full_path, position=self.game_object.transform.position
         )
 
         # --- Configuration ---

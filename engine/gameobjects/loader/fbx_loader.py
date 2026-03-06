@@ -12,10 +12,11 @@ from gameobjects.player.mannequin import Bone, Skeleton
 # FBX Loader
 # ------------------------------
 
+
 class FBXAsset:
     def __init__(self, mesh, bones, textures, animations):
         self.mesh = mesh
-        self.bones = bones              # raw bone data
+        self.bones = bones  # raw bone data
         self.textures = textures
         self.animations = animations
 
@@ -32,7 +33,7 @@ def load_fbx_asset(base_path: str) -> FBXAsset:
 
     mesh_path = base / "mesh.json"
     skel_path = base / "skel.json"
-    tex_path  = base / "tex.json"
+    tex_path = base / "tex.json"
 
     if not mesh_path.exists():
         raise FileNotFoundError(mesh_path)
@@ -46,10 +47,10 @@ def load_fbx_asset(base_path: str) -> FBXAsset:
         mesh_json = json.load(f)
 
     positions = np.asarray(mesh_json["positions"], dtype=np.float32)
-    normals   = np.asarray(mesh_json["normals"], dtype=np.float32)
-    uvs       = np.asarray(mesh_json["uvs"], dtype=np.float32)
-    bone_ids  = np.asarray(mesh_json["bone_ids"], dtype=np.uint16)
-    weights   = np.asarray(mesh_json["bone_weights"], dtype=np.float32)
+    normals = np.asarray(mesh_json["normals"], dtype=np.float32)
+    uvs = np.asarray(mesh_json["uvs"], dtype=np.float32)
+    bone_ids = np.asarray(mesh_json["bone_ids"], dtype=np.uint16)
+    weights = np.asarray(mesh_json["bone_weights"], dtype=np.float32)
 
     mesh = Mesh(
         positions=positions,
@@ -67,13 +68,15 @@ def load_fbx_asset(base_path: str) -> FBXAsset:
 
     bones = []
     for b in skel_json["bones"]:
-        bones.append({
-            "name": b["name"],
-            "parent": b["parent"],
-            "inverse_bind": np.array(
-                b["inverse_bind"], dtype=np.float32
-            ).reshape(4, 4),
-        })
+        bones.append(
+            {
+                "name": b["name"],
+                "parent": b["parent"],
+                "inverse_bind": np.array(b["inverse_bind"], dtype=np.float32).reshape(
+                    4, 4
+                ),
+            }
+        )
 
     # ------------------------------
     # Load textures

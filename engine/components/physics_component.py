@@ -4,7 +4,7 @@ import numpy as np
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from gameobjects.object import GameObject   
+    from gameobjects.object import GameObject
 
 
 class ClothComponent:
@@ -26,10 +26,12 @@ class ClothComponent:
 
     def start(self):
         if self.game_object is None:
-            raise RuntimeError("ClothComponent must be attached to a GameObject before start().")
+            raise RuntimeError(
+                "ClothComponent must be attached to a GameObject before start()."
+            )
         if self.game_object.transform is None:
             raise RuntimeError("GameObject must have a transform component.")
-        
+
         origin = self.game_object.transform.position.copy()
 
         self.cloth = Cloth(
@@ -39,7 +41,7 @@ class ClothComponent:
             segments_x=self.segments_x,
             segments_y=self.segments_y,
             gravity=self.gravity,
-            wind_strength=self.wind_rate
+            wind_strength=self.wind_rate,
         )
 
         vertices, normals, uvs, indices = self.cloth.build_mesh_data()

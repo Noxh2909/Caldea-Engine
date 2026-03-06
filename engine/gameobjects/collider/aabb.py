@@ -2,7 +2,7 @@ import numpy as np
 
 
 class AABBCollider:
-    def __init__(self, size=(1, 1, 1)):
+    def __init__(self, size=None):
         """
         Docstring für __init__
 
@@ -24,7 +24,7 @@ class AABBCollider:
         # Small safety margin to prevent side-clipping (in meters)
         collision_margin = 0.4
 
-        half = (world_size * 0.5) + collision_margin
+        half = (world_size * 0.5) # + collision_margin
 
         min_v = transform.position - half
         max_v = transform.position + half
@@ -40,6 +40,7 @@ class AABBCollider:
         x0, y0, z0 = min_v
         x1, y1, z1 = max_v
 
+        # fmt: off
         return np.array([
             [x0, y0, z0],
             [x1, y0, z0],
@@ -50,3 +51,4 @@ class AABBCollider:
             [x1, y1, z1],
             [x0, y1, z1],
         ], dtype=np.float32)
+        # fmt: on

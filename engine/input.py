@@ -24,8 +24,8 @@ class InputState:
             "left": False,
             "right": False,
             "sprint": False,
-            "crouch_hold": False, 
-            "crouch_tap": False, 
+            "crouch_hold": False,
+            "crouch_tap": False,
             "jump": False,
             "toggle_third_person": False,
         }

@@ -34,14 +34,15 @@ class World:
 
         # ---------- transform ----------
         transform = Transform(
-            position=data.get("position", [0, 0, 0]),
-            scale=data.get("scale", [1, 1, 1])
+            position=data.get("position", [0, 0, 0]), scale=data.get("scale", [1, 1, 1])
         )
 
         # ---------- mesh ----------
         mesh_name = data.get("mesh")
-        
-        material_blacklist = ["cloth"]  # Meshes that should not have a material assigned
+
+        material_blacklist = [
+            "cloth"
+        ]  # Meshes that should not have a material assigned
         if mesh_name in material_blacklist:
             mesh = None
         else:
@@ -63,7 +64,9 @@ class World:
                     double_sided=material_data.get("double_sided", False),
                     color=base_material.color,
                     texture=base_material.texture,
-                    texture_scale_mode=material_data.get("texture_scale_mode", "default"),
+                    texture_scale_mode=material_data.get(
+                        "texture_scale_mode", "default"
+                    ),
                     texture_scale_value=material_data.get("texture_scale_value"),
                     shininess=material_data.get("shininess"),
                     specular_strength=material_data.get("specular_strength"),
@@ -82,12 +85,12 @@ class World:
             mesh=mesh,
             material=material,
             collider=collider,
-            obj_name=obj_name
+            obj_name=obj_name,
         )
 
         self.objects.append(obj)
 
-        # ---------- components ---------- 
+        # ---------- components ----------
         audio_data = data.get("audio")
         if audio_data:
             obj.add_component(AudioComponent(self.audio_engine, audio_data))

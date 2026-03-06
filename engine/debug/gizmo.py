@@ -53,9 +53,7 @@ class DebugGizmo:
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
 
         GL.glBufferData(
-            GL.GL_ARRAY_BUFFER,
-            vertices.astype(np.float32),
-            GL.GL_DYNAMIC_DRAW
+            GL.GL_ARRAY_BUFFER, vertices.astype(np.float32), GL.GL_DYNAMIC_DRAW
         )
 
         GL.glEnableVertexAttribArray(0)

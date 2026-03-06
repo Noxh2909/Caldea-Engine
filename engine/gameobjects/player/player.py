@@ -75,7 +75,7 @@ class Player:
         self.on_ground = False
 
         # Player hitbox
-        self.radius = 0.35  # Breite des Spielers (X/Z)
+        self.radius = 0.7  # Breite des Spielers (X/Z)
         self.capsule_height = 2.0  # Höhe der Kapsel (Y)
         self.height = 2.0  # Gesamthöhe (Y)
 

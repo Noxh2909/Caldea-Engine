@@ -1,6 +1,7 @@
 from openal import Listener, oalQuit
 from openal.al import alDistanceModel, AL_INVERSE_DISTANCE_CLAMPED
 
+
 class AudioEngine:
     """
     Minimal Audio Engine.
@@ -40,10 +41,16 @@ class AudioEngine:
         forward = camera.player.front
         up = camera.player.up
 
-        self.listener.set_orientation((
-            float(forward[0]), float(forward[1]), float(forward[2]),
-            float(up[0]), float(up[1]), float(up[2])
-        ))
+        self.listener.set_orientation(
+            (
+                float(forward[0]),
+                float(forward[1]),
+                float(forward[2]),
+                float(up[0]),
+                float(up[1]),
+                float(up[2]),
+            )
+        )
 
     # ----------------------------
     # Per-frame Update

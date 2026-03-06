@@ -5,10 +5,9 @@ from .player import look_at
 
 
 class Camera:
-    def __init__(self, player, physics_world, fov=120.0):
+    def __init__(self, player, physics_world):
         self.player = player
         self.physics_world = physics_world
-        self.fov = fov
 
         # Eye height as a fraction of player height (single source of truth)
         self.eye_height_factor = 0.4
@@ -63,8 +62,8 @@ class Camera:
 
             return look_at(eye, target, self.player.up)
 
-    def get_projection_matrix(self, aspect: float, near=0.1, far=100.0) -> np.ndarray:
-        f = 1.0 / math.tan(math.radians(self.fov) / 2.0)
+    def get_projection_matrix(self, aspect: float, near=0.1, far=100.0, fov=120.0) -> np.ndarray:
+        f = 1.0 / math.tan(math.radians(fov) / 2.0)
 
         proj = np.zeros((4, 4), dtype=np.float32)
         proj[0, 0] = f / aspect
