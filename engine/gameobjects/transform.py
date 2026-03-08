@@ -9,7 +9,8 @@ class Transform:
             self.scale[1] * 0.5
         )  # Adjust Y position to account for scale (assuming pivot at bottom)
 
-        self.yaw = yaw
+        # Accept yaw in degrees; convert to radians internally
+        self.yaw = 0.0 if yaw is None else np.radians(yaw)
 
     def matrix(self):
         m = np.identity(4, dtype=np.float32)

@@ -14,12 +14,12 @@ from gameobjects.player.camera import Camera
 from gameobjects.transform import Transform
 from gameobjects.material_lookup import Material
 from gameobjects.mesh import Mesh
-from gameobjects.loader.fbx_loader import create_mannequin_from_fbx
 from gameobjects.collider.aabb import AABBCollider
 from gameobjects.object import GameObject
 from gameobjects.player.mannequin import Mannequin
 from gameobjects.player.animator import Animator
 from gameobjects.vertec import plane_vertices
+from gameobjects.loader.glb_loader import GLBLoader
 
 from audio.audio_enigne import AudioEngine
 from components.light_component import LightComponent
@@ -31,6 +31,7 @@ from debug.ui.debug_window import UIManager
 # ============================================================
 # Initialization Function
 # ============================================================
+
 
 def initialize():
     # Pygame / OpenGL Initialization
@@ -65,8 +66,6 @@ def initialize():
     debug_renderer = DebugRenderer()
     audio = AudioEngine()
     world = World(audio, "engine/world_gen.json")
-    debug_renderer.debug_enabled = False
-
     gizmo = DebugGizmo()
     debug_controller = DebugObjectController()
     debug_ui = UIManager()
@@ -74,6 +73,56 @@ def initialize():
     debug_enabled = False
     debug_ui.enabled = False
     gizmo.enabled = False
+
+    # ------------------------------------------------------------
+    # World Setup
+    # ------------------------------------------------------------
+
+    try:
+        world.spawn_object(
+            glb_path="assets/models/stehlampe.glb",
+            position=(2.9, 1.5, 7.3),
+            scale=(2.0, 2.0, 2.0),
+            yaw=180.0,
+            material=Material(color=(1, 1, 1), shininess=16, specular_strength=0.3),
+            collider_size=(0.5, 2.0, 0.5),
+            obj_name="Stehlampe",
+        )
+
+        world.spawn_object(
+            glb_path="assets/models/plattenspieler.glb",
+            position=(-1, 2.42, 7.2),
+            scale=(0.5, 0.5, 0.5),
+            yaw=-90.0,
+            material=Material(color=(1, 1, 1), shininess=16, specular_strength=0.3),
+            collider_size=(1.5, 1.0, 1.5),
+            obj_name="Plattenspieler",
+            audio={
+                "path": "shadow_mono.wav",
+                "loop": True,
+                "volume": 70.0,
+                "max_distance": 50.0,
+                "rolloff": 1.5,
+                "fade_ratio": 0.5,
+            },
+        )
+
+        world.spawn_object(
+            glb_path="assets/models/nachttisch.glb",
+            position=(-1, 0.8, 7.1),
+            scale=(1.0, 1.0, 1.0),
+            material=Material(color=(1, 1, 1), shininess=16, specular_strength=0.3),
+            collider_size=(2.0, 2.0, 1.0),
+            obj_name="Nachttisch",
+        )
+
+    except Exception as e:
+        print("[GLB Loader] Failed to load .glb:", e)
+    debug_renderer.debug_enabled = False
+
+    # ------------------------------------------------------------
+    # Physics Setup
+    # ------------------------------------------------------------
 
     # Static Physics Plane
     plane_game_object = GameObject(
@@ -89,21 +138,6 @@ def initialize():
     for obj in world.objects:
         if obj.collider is not None:
             physics.add_static(obj)
-
-    # Load Player Mannequin (FBX)
-    mesh, skeleton, material, animations = create_mannequin_from_fbx("assets/models/Frank")
-    mannequin = Mannequin(
-        player=player,
-        mesh=mesh,
-        material=Material(color=(1.0, 1.0, 1.0)),
-        skeleton=skeleton,
-        foot_offset=0.0,
-        scale=0.018,
-    )
-
-    # Animator Setup
-    anim_clip = list(animations.values())[0]
-    mannequin.animator = Animator(skeleton=mannequin.skeleton, clip=anim_clip, loop=True)
 
     # Scene Object List (Render Layer)
     scene_objects: list[RenderObject] = []
@@ -140,7 +174,6 @@ def initialize():
         "debug_ui": debug_ui,
         "scene_objects": scene_objects,
         "plane_mesh": plane_mesh,
-        "mannequin": mannequin,
         "ui_focus": ui_focus,
         "debug_enabled": debug_enabled,
         "WIDTH": WIDTH,
@@ -152,10 +185,11 @@ def initialize():
 # Main Loop Function
 # ============================================================
 
+
 def main_loop(engine):
     running = True
     while running:
-        dt = engine["clock"].tick(120) / 1000.0
+        dt = engine["clock"].tick(240) / 1000.0
 
         # ------------------------------------------------------------
         # Event Handling
@@ -206,7 +240,10 @@ def main_loop(engine):
         for obj in engine["world"].objects:
             obj.update(dt)
 
-        engine["audio"].update(engine["camera"])
+        try:
+            engine["audio"].update(engine["camera"])
+        except Exception:
+            pass
 
         # ------------------------------------------------------------
         # Light Synchronization
@@ -256,7 +293,9 @@ def main_loop(engine):
 
         current_name = "None"
         if engine["debug_controller"].targets:
-            current_obj = engine["debug_controller"].targets[engine["debug_controller"].current_index]
+            current_obj = engine["debug_controller"].targets[
+                engine["debug_controller"].current_index
+            ]
             current_name = getattr(current_obj, "obj_name", None)
             if not current_name:
                 current_name = type(current_obj).__name__
@@ -274,7 +313,12 @@ def main_loop(engine):
         # Collider Gizmos
         # ------------------------------------------------------------
         if engine["gizmo"].enabled:
-            vp = engine["camera"].get_projection_matrix(engine["WIDTH"] / engine["HEIGHT"]) @ engine["camera"].get_view_matrix()
+            vp = (
+                engine["camera"].get_projection_matrix(
+                    engine["WIDTH"] / engine["HEIGHT"]
+                )
+                @ engine["camera"].get_view_matrix()
+            )
 
             for obj in engine["physics"].static_objects:
                 if hasattr(obj, "collider") and obj.collider is not None:

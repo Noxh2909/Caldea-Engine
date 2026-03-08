@@ -1,12 +1,15 @@
 import pygame
+import math
 
 
 class DebugObjectController:
-    def __init__(self, move_speed=0.1):
+    def __init__(self, move_speed=0.05):
         self.move_speed = move_speed
+        self.rotation_speed_deg = 2.0
         self.targets = []
         self.current_index = 0
         self.m_was_pressed = False
+        self.r_was_pressed = False
 
     def _build_target_list(self, world_objects):
         """
@@ -42,6 +45,17 @@ class DebugObjectController:
         target = self.targets[self.current_index]
         target_transform = getattr(target, "transform", None)
 
+        # ---- Snap rotation to nearest 90° with R ----
+        if keys[pygame.K_r] and not self.r_was_pressed:
+            if target_transform is not None and hasattr(target_transform, "yaw"):
+                current_deg = math.degrees(target_transform.yaw)
+                snapped = round(current_deg / 90.0) * 90.0
+                target_transform.yaw = math.radians(snapped)
+            self.r_was_pressed = True
+
+        elif not keys[pygame.K_r]:
+            self.r_was_pressed = False
+
         # ---- Movement ----
         if target_transform is not None:
             if keys[pygame.K_UP]:
@@ -56,5 +70,10 @@ class DebugObjectController:
                 target_transform.position[1] += self.move_speed
             if keys[pygame.K_PAGEDOWN]:
                 target_transform.position[1] -= self.move_speed
+
+            # ---- Rotation (Hold TAB) ----
+            if keys[pygame.K_TAB]:
+                if hasattr(target_transform, "yaw"):
+                    target_transform.yaw += math.radians(self.rotation_speed_deg)
 
         return target_transform
