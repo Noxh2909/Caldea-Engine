@@ -57,8 +57,8 @@ class Material:
         texture=None,
         texture_scale_mode=None,
         texture_scale_value=None,
-        shininess=None,
-        specular_strength=None,
+        shininess=32,
+        specular_strength=0.5,
     ):
         """
         color         : fallback color (vec3)

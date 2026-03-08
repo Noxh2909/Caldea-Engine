@@ -4,6 +4,8 @@ from pathlib import Path
 
 # Note: World class is responsible for loading levels and creating game objects based on JSON data.
 from gameobjects.mesh import MeshRegistry
+from gameobjects.loader.glb_loader import GLBLoader
+from gameobjects.mesh import Mesh
 from gameobjects.object import GameObject
 from gameobjects.transform import Transform
 from gameobjects.collider.aabb import AABBCollider
@@ -30,7 +32,7 @@ class World:
         if level_path:
             self.load_level(level_path)
 
-    def _create_object(self, data: dict):
+    def create_object(self, data: dict):
 
         # ---------- transform ----------
         transform = Transform(
@@ -64,12 +66,10 @@ class World:
                     double_sided=material_data.get("double_sided", False),
                     color=base_material.color,
                     texture=base_material.texture,
-                    texture_scale_mode=material_data.get(
-                        "texture_scale_mode", "default"
-                    ),
+                    texture_scale_mode=material_data.get("texture_scale_mode", "default"),
                     texture_scale_value=material_data.get("texture_scale_value"),
-                    shininess=material_data.get("shininess"),
-                    specular_strength=material_data.get("specular_strength"),
+                    shininess=material_data.get("shininess", 32),
+                    specular_strength=material_data.get("specular_strength", 0.5),
                 )
 
         # ---------- collider ----------
@@ -114,6 +114,55 @@ class World:
 
         if collider is not None:
             self.static_objects.append(obj)
+        
+    def spawn_object(
+        self,
+        glb_path: str,
+        position=(0.0, 0.0, 0.0),
+        scale=(1.0, 1.0, 1.0),
+        yaw: float = 90.0,
+        material: Material | None = None,
+        collider_size: tuple | None = None,
+        obj_name: str | None = None,
+        audio: dict | None = None,
+    ):
+        """
+        Loads a GLB model and spawns it as a GameObject in the world.
+
+        Example:
+        world.spawn_obj("assets/models/lamp.glb", position=(0,1.5,0), scale=(2,2,2))
+        """
+
+        loader = GLBLoader(glb_path)
+        data = loader.load_first_mesh()
+
+        mesh = Mesh(data["vertices"], data["indices"])
+        if len(data["indices"]) // 3 > 50000:
+            print("[Warning] High poly model")
+
+        if material is None:
+            material = Material(color=(0.8, 0.8, 0.8), shininess=16, specular_strength=0.3)
+
+        transform = Transform(position=position, scale=scale, yaw=yaw)
+
+        collider = AABBCollider(size=collider_size) if collider_size else None
+
+        obj = GameObject(
+            mesh=mesh,
+            transform=transform,
+            material=material,
+            collider=collider,
+            obj_name=obj_name,
+        )
+        if audio:
+            obj.add_component(AudioComponent(self.audio_engine, audio))
+
+        self.objects.append(obj)
+
+        if collider is not None:
+            self.static_objects.append(obj)
+
+        return obj
 
     def load_level(self, level_path: str):
         """
@@ -132,4 +181,4 @@ class World:
 
         objects = data.get("objects", [])
         for entry in objects:
-            self._create_object(entry)
+            self.create_object(entry)
