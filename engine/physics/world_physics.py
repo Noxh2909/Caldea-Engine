@@ -11,6 +11,7 @@ class PhysicsWorld:
     def __init__(self, gravity=(0.0, -25.0, 0.0)):
         self.gravity = np.array(gravity, dtype=np.float32)
         self.static_objects = []
+        self.dynamic_objects = []
 
     # -------------------------------------------------
     # World setup
@@ -26,6 +27,19 @@ class PhysicsWorld:
             raise ValueError("Static object must have a collider")
         self.static_objects.append(obj)
 
+    def add_dynamic(self, obj):
+        """
+        Register an object affected by gravity.
+        The object must have:
+        - obj.transform.position (vec3)
+        - obj.velocity (vec3)
+        - obj.collider (optional)
+        """
+        if not hasattr(obj, "velocity"):
+            obj.velocity = np.zeros(3, dtype=np.float32)
+
+        self.dynamic_objects.append(obj)
+
     # -------------------------------------------------
     # Physics step
     # -------------------------------------------------
@@ -40,6 +54,42 @@ class PhysicsWorld:
 
         # Integrate vertical movement
         player.position[1] += player.velocity_y * dt
+
+        # ----------------------------------
+        # Dynamic objects (gravity bodies)
+        # ----------------------------------
+        for obj in self.dynamic_objects:
+            if obj.collider is None:
+                continue
+
+            # store previous position to detect surface crossing
+            prev_pos = obj.transform.position.copy()
+
+            # apply gravity
+            obj.velocity += self.gravity * dt
+
+            # integrate position
+            obj.transform.position += obj.velocity * dt
+
+            # collision against static AABBs
+            for static in self.static_objects:
+                min_v, max_v = static.collider.get_bounds(static.transform)
+
+                # horizontal overlap test
+                if (
+                    min_v[0] <= obj.transform.position[0] <= max_v[0]
+                    and min_v[2] <= obj.transform.position[2] <= max_v[2]
+                ):
+                    ground_y = max_v[1]
+
+                    was_above = prev_pos[1] >= ground_y
+                    is_now_below = obj.transform.position[1] <= ground_y
+
+                    # detect crossing from above (prevents tunneling)
+                    if was_above and is_now_below and obj.velocity[1] <= 0.0:
+                        obj.transform.position[1] = ground_y
+                        obj.velocity[1] = 0.0
+                        break
 
         # Resolve collisions
         self._resolve_player_collisions(player)

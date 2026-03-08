@@ -4,14 +4,32 @@ import numpy as np
 class AABBCollider:
     def __init__(self, size=None):
         """
-        Docstring für __init__
-
-        :param self: The object itself
-        :param size: The size of the collider
+        If size is provided it will be used directly.
+        If size is None, it can later be computed from mesh vertices.
         """
-        self.size = np.array(size, dtype=np.float32)
+        self.size = None if size is None else np.array(size, dtype=np.float32)
+        # local offset of the collider center relative to object origin
+        self.offset = np.zeros(3, dtype=np.float32)
+
+    def fit_to_vertices(self, vertices):
+        """
+        Automatically compute collider size from mesh vertices.
+
+        vertices: numpy array shape (N,3)
+        """
+        vmin = vertices.min(axis=0)
+        vmax = vertices.max(axis=0)
+
+        # collider size
+        self.size = (vmax - vmin).astype(np.float32)
+
+        # collider center relative to mesh origin
+        center = (vmin + vmax) * 0.5
+        self.offset = center.astype(np.float32)
 
     def get_bounds(self, transform):
+        if self.size is None:
+            raise ValueError("AABBCollider size is None. Call fit_to_vertices() or provide size.")
 
         world_size = self.size * transform.scale
         half = world_size * 0.5
@@ -27,8 +45,11 @@ class AABBCollider:
         # rotated extents
         extents = np.abs(R) @ half
 
-        min_v = transform.position - extents
-        max_v = transform.position + extents
+        # compute world-space center including offset
+        world_center = transform.position + (R @ (self.offset * transform.scale))
+
+        min_v = world_center - extents
+        max_v = world_center + extents
 
         return min_v, max_v
 

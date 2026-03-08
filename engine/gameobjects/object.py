@@ -1,3 +1,5 @@
+import numpy as np
+
 class GameObject:
     def __init__(
         self, transform, mesh=None, material=None, collider=None, obj_name=None
@@ -21,6 +23,10 @@ class GameObject:
         self.obj_name = obj_name or "GameObject(name_placeholder)"
 
         self.components = []
+        
+        # physics attributes
+        self.use_gravity = False
+        self.velocity = np.zeros(3, dtype=np.float32)
 
     def add_component(self, component):
         component.game_object = self  # Set back-reference

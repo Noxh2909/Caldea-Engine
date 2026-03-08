@@ -17,8 +17,32 @@ class Mesh:
         bone_weights: np.ndarray | None = None,
     ):
         """
-        vertices: interleaved array [pos(3), normal(3), uv(2)]
-        indices: optional index buffer (uint32)
+        Create a Mesh object and upload geometry to the GPU.
+
+        Parameters
+        ----------
+        vertices : np.ndarray | None
+            Interleaved vertex buffer containing:
+            [position(3), normal(3), uv(2)] or
+            [position(3), normal(3), uv(2), weights(4)] for skinned meshes.
+
+        indices : np.ndarray | None
+            Optional index buffer used for indexed rendering.
+
+        positions : np.ndarray | None
+            Vertex positions (Nx3) used when constructing the interleaved buffer.
+
+        normals : np.ndarray | None
+            Vertex normals (Nx3).
+
+        uvs : np.ndarray | None
+            Texture coordinates (Nx2).
+
+        bone_ids : np.ndarray | None
+            Bone indices for skeletal animation (Nx4).
+
+        bone_weights : np.ndarray | None
+            Bone weights corresponding to bone_ids (Nx4).
         """
         # --- Build interleaved vertex buffer ---
         if vertices is None:
@@ -68,11 +92,16 @@ class Mesh:
 
         stride_floats = 12 if self.is_skinned else 8
         self.vertex_count = vertices.size // stride_floats
+        # store vertex positions (Nx3) for systems like physics/colliders
+        reshaped_vertices = vertices.reshape(self.vertex_count, stride_floats)
+        self.positions = reshaped_vertices[:, 0:3].copy()
         # Store layout info for dynamic position updates
         self.stride_floats = stride_floats
         self.stride_bytes = stride_floats * 4
         self.index_count = len(indices) if indices is not None else 0
         self.has_indices = indices is not None
+        # keep CPU-side index copy for tools / collision systems
+        self.indices = indices.copy() if indices is not None else None
 
         self.vao = GL.glGenVertexArrays(1)
         self.vbo = GL.glGenBuffers(1)
@@ -141,6 +170,10 @@ class Mesh:
         GL.glBindVertexArray(0)
 
     def draw(self):
+        """
+        Render the mesh using the currently bound shader and OpenGL state.
+        Uses indexed drawing when an index buffer is present.
+        """
         GL.glBindVertexArray(self.vao)
         if self.has_indices:
             GL.glDrawElements(
@@ -152,8 +185,15 @@ class Mesh:
 
     def update_positions(self, positions: np.ndarray):
         """
-        Efficient bulk update of vertex positions.
-        Updates CPU copy and performs a single glBufferSubData call.
+        Update vertex positions on both CPU and GPU.
+
+        This method updates the internal CPU copy of the interleaved
+        vertex buffer and performs a single OpenGL buffer update.
+
+        Parameters
+        ----------
+        positions : np.ndarray
+            Array of shape (vertex_count, 3) containing new vertex positions.
         """
         assert positions.shape[0] == self.vertex_count, "Position count mismatch"
 
@@ -168,10 +208,30 @@ class Mesh:
         )
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
 
+    @property
+    def vertices(self):
+        """
+        Access vertex positions.
+
+        Returns
+        -------
+        np.ndarray
+            Array of shape (N, 3) containing mesh vertex positions.
+
+        This accessor exists mainly for systems such as:
+        - physics collision
+        - automatic collider generation
+        - spatial queries
+        """
+        return self.positions
+
 
 class MeshRegistry:
     """
-    Docstring für MeshRegistry
+    Mesh asset registry.
+
+    This registry lazily loads and caches mesh assets so that
+    each mesh is only created once and reused across the engine.
     """
 
     _meshes: dict[str, Mesh] = {}
@@ -179,13 +239,19 @@ class MeshRegistry:
     @classmethod
     def get(cls, name: str) -> Mesh:
         """
-        Docstring für get
+        Retrieve a mesh from the registry.
 
-        :param cls: The class itself
-        :param name: The name of the mesh to retrieve
-        :type name: str
-        :return: The mesh object
-        :rtype: Mesh
+        If the mesh is not yet loaded, it will be created and stored.
+
+        Parameters
+        ----------
+        name : str
+            Name of the mesh asset.
+
+        Returns
+        -------
+        Mesh
+            The loaded mesh instance.
         """
         if name not in cls._meshes:
             cls._meshes[name] = cls._load_mesh(name)

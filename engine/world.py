@@ -2,7 +2,6 @@
 import json
 from pathlib import Path
 
-# Note: World class is responsible for loading levels and creating game objects based on JSON data.
 from gameobjects.mesh import MeshRegistry
 from gameobjects.loader.glb_loader import GLBLoader
 from gameobjects.mesh import Mesh
@@ -74,7 +73,14 @@ class World:
 
         # ---------- collider ----------
         collider_size = data.get("collider")
-        collider = AABBCollider(size=collider_size) if collider_size else None
+
+        if collider_size:
+            collider = AABBCollider(size=collider_size)
+        elif mesh is not None:
+            collider = AABBCollider()
+            collider.fit_to_vertices(mesh.vertices)
+        else:
+            collider = None
 
         # ---------- name -----------
         obj_name = data.get("obj_name")
@@ -87,6 +93,9 @@ class World:
             collider=collider,
             obj_name=obj_name,
         )
+
+        # ---------- gravity ----------
+        obj.use_gravity = data.get("gravity", False)
 
         self.objects.append(obj)
 
@@ -125,6 +134,7 @@ class World:
         collider_size: tuple | None = None,
         obj_name: str | None = None,
         audio: dict | None = None,
+        gravity: bool = False,
     ):
         """
         Loads a GLB model and spawns it as a GameObject in the world.
@@ -145,7 +155,11 @@ class World:
 
         transform = Transform(position=position, scale=scale, yaw=yaw)
 
-        collider = AABBCollider(size=collider_size) if collider_size else None
+        if collider_size:
+            collider = AABBCollider(size=collider_size)
+        else:
+            collider = AABBCollider()
+            collider.fit_to_vertices(mesh.vertices)
 
         obj = GameObject(
             mesh=mesh,
@@ -154,6 +168,9 @@ class World:
             collider=collider,
             obj_name=obj_name,
         )
+        # ---------- gravity ----------
+        obj.use_gravity = gravity
+
         if audio:
             obj.add_component(AudioComponent(self.audio_engine, audio))
 

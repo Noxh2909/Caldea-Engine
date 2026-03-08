@@ -11,8 +11,7 @@
         "specular_strength": 0.5
       },
       "position": [4, 0, 3],
-      "scale": [0.5, 10, 10],
-      "collider": [1, 1, 1]
+      "scale": [0.5, 10, 10]
     },
     {
       "obj_name": "Wall2",
@@ -25,8 +24,7 @@
         "specular_strength": 0.5
       },
       "position": [-6, 0, 3],
-      "scale": [0.5, 10, 10],
-      "collider": [1, 1, 1]
+      "scale": [0.5, 10, 10]
     },
     {
       "obj_name": "Wall3",
@@ -39,8 +37,7 @@
         "specular_strength": 0.5
       },
       "position": [-1, 0, 8],
-      "scale": [10, 10, 0.5],
-      "collider": [1, 1, 1]
+      "scale": [10, 10, 0.5]
     },
     {
       "obj_name": "Wall4",
@@ -53,8 +50,7 @@
         "specular_strength": 0.5
       },
       "position": [-1, 0, -2],
-      "scale": [10, 10, 0.5],
-      "collider": [1, 1, 1]
+      "scale": [10, 10, 0.5]
     },
      {
       "obj_name": "Picture",
@@ -67,8 +63,7 @@
          "specular_strength": 0.3
       },
       "position": [-1, 4, 7.75],
-      "scale": [3, 3, 0.01],
-      "collider": [1, 1, 0.5]
+      "scale": [3, 3, 0.01]
     },
     {
       "obj_name": "Ceiling",
@@ -81,8 +76,7 @@
         "specular_strength": 0.9
       },
       "position": [-1, 9.5, 3],
-      "scale": [10, 0.5, 10],
-      "collider": [1, 1, 1]
+      "scale": [10, 0.5, 10]
     },
     {
       "obj_name": "Floor",
@@ -95,8 +89,7 @@
         "specular_strength": 0.9
       },
       "position": [-1, 0, 3],
-      "scale": [10, 0.5, 10],
-      "collider": [1, 1.5, 1]
+      "scale": [10, 0.5, 10]
     },
     {
       "obj_name": "curtain",
@@ -123,6 +116,7 @@
     },
     {
       "obj_name": "Lamp",
+      "gravity": false,
       "mesh": "sphere",
       "material": {
         "name": "sun",
@@ -131,7 +125,6 @@
       },
       "position": [-5, 1.40, 3.00],
       "scale": [0.2, 0.2, 0.2],
-      "collider": [1.0, 1.0, 1.0],
       "light": {
         "ambient_strength": 0.08,
         "direction": [0.0, 1.0, 0.0],

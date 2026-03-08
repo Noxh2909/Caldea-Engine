@@ -73,7 +73,7 @@ def initialize():
     debug_enabled = False
     debug_ui.enabled = False
     gizmo.enabled = False
-
+    
     # ------------------------------------------------------------
     # World Setup
     # ------------------------------------------------------------
@@ -85,7 +85,6 @@ def initialize():
             scale=(2.0, 2.0, 2.0),
             yaw=180.0,
             material=Material(color=(1, 1, 1), shininess=16, specular_strength=0.3),
-            collider_size=(0.5, 2.0, 0.5),
             obj_name="Stehlampe",
         )
 
@@ -95,7 +94,6 @@ def initialize():
             scale=(0.5, 0.5, 0.5),
             yaw=-90.0,
             material=Material(color=(1, 1, 1), shininess=16, specular_strength=0.3),
-            collider_size=(1.5, 1.0, 1.5),
             obj_name="Plattenspieler",
             audio={
                 "path": "shadow_mono.wav",
@@ -112,7 +110,6 @@ def initialize():
             position=(-1, 0.8, 7.1),
             scale=(1.0, 1.0, 1.0),
             material=Material(color=(1, 1, 1), shininess=16, specular_strength=0.3),
-            collider_size=(1.0, 2.0, 2.0),
             obj_name="Nachttisch",
         )
 
@@ -129,7 +126,7 @@ def initialize():
         mesh=None,
         transform=Transform(position=(0.0, 0.05, 0.0)),
         material=None,
-        collider=AABBCollider(size=(1000.0, 0.1, 1000.0)),
+        collider=AABBCollider(size=(1000.0, 1.0, 1000.0)),
     )
     physics.add_static(plane_game_object)
     plane_mesh = Mesh(plane_vertices)
@@ -138,6 +135,10 @@ def initialize():
     for obj in world.objects:
         if obj.collider is not None:
             physics.add_static(obj)
+            
+    for obj in world.objects:
+        if getattr(obj, "use_gravity", False):
+            physics.add_dynamic(obj)
 
     # Scene Object List (Render Layer)
     scene_objects: list[RenderObject] = []
