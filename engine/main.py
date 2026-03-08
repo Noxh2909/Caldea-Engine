@@ -112,7 +112,7 @@ def initialize():
             position=(-1, 0.8, 7.1),
             scale=(1.0, 1.0, 1.0),
             material=Material(color=(1, 1, 1), shininess=16, specular_strength=0.3),
-            collider_size=(2.0, 2.0, 1.0),
+            collider_size=(1.0, 2.0, 2.0),
             obj_name="Nachttisch",
         )
 

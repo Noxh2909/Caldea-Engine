@@ -12,22 +12,24 @@ class AABBCollider:
         self.size = np.array(size, dtype=np.float32)
 
     def get_bounds(self, transform):
-        """
-        Docstring für get_bounds
 
-        :param self: The object itself
-        :param transform: The transform of the object
-        """
-        # World-space collider size = visual scale × local collider size
         world_size = self.size * transform.scale
+        half = world_size * 0.5
 
-        # Small safety margin to prevent side-clipping (in meters)
-        collision_margin = 0.4
+        # extract rotation only (remove scaling from model matrix)
+        R = transform.matrix()[:3, :3].copy()
 
-        half = (world_size * 0.5) # + collision_margin
+        # normalize columns to remove scale influence
+        R[:, 0] /= np.linalg.norm(R[:, 0]) if np.linalg.norm(R[:, 0]) != 0 else 1.0
+        R[:, 1] /= np.linalg.norm(R[:, 1]) if np.linalg.norm(R[:, 1]) != 0 else 1.0
+        R[:, 2] /= np.linalg.norm(R[:, 2]) if np.linalg.norm(R[:, 2]) != 0 else 1.0
 
-        min_v = transform.position - half
-        max_v = transform.position + half
+        # rotated extents
+        extents = np.abs(R) @ half
+
+        min_v = transform.position - extents
+        max_v = transform.position + extents
+
         return min_v, max_v
 
     def get_corners(self, transform):
