@@ -73,48 +73,6 @@ def initialize():
     debug_enabled = False
     debug_ui.enabled = False
     gizmo.enabled = False
-    
-    # ------------------------------------------------------------
-    # World Setup
-    # ------------------------------------------------------------
-
-    try:
-        world.spawn_object(
-            glb_path="assets/models/stehlampe.glb",
-            position=(2.9, 1.5, 7.3),
-            scale=(2.0, 2.0, 2.0),
-            yaw=180.0,
-            material=Material(color=(1, 1, 1), shininess=16, specular_strength=0.3),
-            obj_name="Stehlampe",
-        )
-
-        world.spawn_object(
-            glb_path="assets/models/plattenspieler.glb",
-            position=(-1, 2.42, 7.2),
-            scale=(0.5, 0.5, 0.5),
-            yaw=-90.0,
-            material=Material(color=(1, 1, 1), shininess=16, specular_strength=0.3),
-            obj_name="Plattenspieler",
-            audio={
-                "path": "shadow_mono.wav",
-                "loop": True,
-                "volume": 70.0,
-                "max_distance": 50.0,
-                "rolloff": 1.5,
-                "fade_ratio": 0.5,
-            },
-        )
-
-        world.spawn_object(
-            glb_path="assets/models/nachttisch.glb",
-            position=(-1, 0.8, 7.1),
-            scale=(1.0, 1.0, 1.0),
-            material=Material(color=(1, 1, 1), shininess=16, specular_strength=0.3),
-            obj_name="Nachttisch",
-        )
-
-    except Exception as e:
-        print("[GLB Loader] Failed to load .glb:", e)
     debug_renderer.debug_enabled = False
 
     # ------------------------------------------------------------
@@ -132,7 +90,7 @@ def initialize():
     plane_mesh = Mesh(plane_vertices)
 
     # Register World Colliders
-    for obj in world.objects:
+    for obj in world.objects:   
         if obj.collider is not None:
             physics.add_static(obj)
             

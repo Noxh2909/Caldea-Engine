@@ -23,6 +23,7 @@ class World:
 
         :param self: The object itself
         """
+        self.material_blacklist = {"cloth"}  
         self.audio_engine = audio_engine
         self.objects: list[GameObject] = []
         self.static_objects: list[GameObject] = []
@@ -31,20 +32,28 @@ class World:
         if level_path:
             self.load_level(level_path)
 
-    def create_object(self, data: dict):
+    def spawn_object(self, data: dict):
+        """
+        Unified object creation used both for JSON loading and runtime spawning.
+        Combines the old create_object and spawn_object logic.
+        """
 
         # ---------- transform ----------
         transform = Transform(
-            position=data.get("position", [0, 0, 0]), scale=data.get("scale", [1, 1, 1])
+            position=data.get("position"),
+            scale=data.get("scale"),
+            yaw=data.get("yaw", 0.0),
         )
 
         # ---------- mesh ----------
         mesh_name = data.get("mesh")
+        glb_path = data.get("glb_path")
 
-        material_blacklist = [
-            "cloth"
-        ]  # Meshes that should not have a material assigned
-        if mesh_name in material_blacklist:
+        if glb_path:
+            loader = GLBLoader(glb_path)
+            glb_data = loader.load_first_mesh()
+            mesh = Mesh(glb_data["vertices"], glb_data["indices"])
+        elif mesh_name in self.material_blacklist:
             mesh = None
         else:
             mesh = MeshRegistry.get(mesh_name) if mesh_name else None
@@ -82,7 +91,7 @@ class World:
         else:
             collider = None
 
-        # ---------- name -----------
+        # ---------- name ----------
         obj_name = data.get("obj_name")
 
         # ---------- object ----------
@@ -108,7 +117,7 @@ class World:
         if light_data:
             obj.add_component(LightComponent(light_data))
 
-        cloth_data = data.get("cloth")
+        cloth_data = data.get("soft_body") or data.get("cloth")
         if cloth_data:
             obj.add_component(
                 ClothComponent(
@@ -120,61 +129,6 @@ class World:
                     wind_rate=cloth_data.get("wind_rate"),
                 )
             )
-
-        if collider is not None:
-            self.static_objects.append(obj)
-        
-    def spawn_object(
-        self,
-        glb_path: str,
-        position=(0.0, 0.0, 0.0),
-        scale=(1.0, 1.0, 1.0),
-        yaw: float = 90.0,
-        material: Material | None = None,
-        collider_size: tuple | None = None,
-        obj_name: str | None = None,
-        audio: dict | None = None,
-        gravity: bool = False,
-    ):
-        """
-        Loads a GLB model and spawns it as a GameObject in the world.
-
-        Example:
-        world.spawn_obj("assets/models/lamp.glb", position=(0,1.5,0), scale=(2,2,2))
-        """
-
-        loader = GLBLoader(glb_path)
-        data = loader.load_first_mesh()
-
-        mesh = Mesh(data["vertices"], data["indices"])
-        if len(data["indices"]) // 3 > 50000:
-            print("[Warning] High poly model")
-
-        if material is None:
-            material = Material(color=(0.8, 0.8, 0.8), shininess=16, specular_strength=0.3)
-
-        transform = Transform(position=position, scale=scale, yaw=yaw)
-
-        if collider_size:
-            collider = AABBCollider(size=collider_size)
-        else:
-            collider = AABBCollider()
-            collider.fit_to_vertices(mesh.vertices)
-
-        obj = GameObject(
-            mesh=mesh,
-            transform=transform,
-            material=material,
-            collider=collider,
-            obj_name=obj_name,
-        )
-        # ---------- gravity ----------
-        obj.use_gravity = gravity
-
-        if audio:
-            obj.add_component(AudioComponent(self.audio_engine, audio))
-
-        self.objects.append(obj)
 
         if collider is not None:
             self.static_objects.append(obj)
@@ -198,4 +152,4 @@ class World:
 
         objects = data.get("objects", [])
         for entry in objects:
-            self.create_object(entry)
+            self.spawn_object(entry)
