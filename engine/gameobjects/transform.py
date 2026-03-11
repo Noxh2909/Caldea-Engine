@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Transform:
-    def __init__(self, position=(0, 0, 0), scale=(1, 1, 1), yaw=0.0):
+    def __init__(self, position=(0, 0, 0), scale=(1, 1, 1), yaw=0.0, roll=0.0):
         self.position = np.array(position, dtype=np.float32)
         self.scale = np.array(scale, dtype=np.float32)
         self.position[1] += (
@@ -11,22 +11,35 @@ class Transform:
 
         # Accept yaw in degrees; convert to radians internally
         self.yaw = 0.0 if yaw is None else np.radians(yaw)
+        self.roll = 0.0 if roll is None else np.radians(roll)
 
     def matrix(self):
         m = np.identity(4, dtype=np.float32)
 
-        # Rotation aus yaw (NICHT auf bestehende Matrix!)
-        c = np.cos(self.yaw)
-        s = np.sin(self.yaw)
+        # Yaw rotation (Y-axis)
+        cy = np.cos(self.yaw)
+        sy = np.sin(self.yaw)
 
-        # fmt: off
-        rot = np.array([
-            [ c, 0, s, 0],
-            [ 0, 1, 0, 0],
-            [-s, 0, c, 0],
-            [ 0, 0, 0, 1],
+        rot_yaw = np.array([
+            [ cy, 0, sy, 0],
+            [  0, 1,  0, 0],
+            [-sy, 0, cy, 0],
+            [  0, 0,  0, 1],
         ], dtype=np.float32)
-        # fmt: on
+
+        # Roll rotation (Z-axis)
+        cr = np.cos(self.roll)
+        sr = np.sin(self.roll)
+
+        rot_roll = np.array([
+            [cr, -sr, 0, 0],
+            [sr,  cr, 0, 0],
+            [ 0,   0, 1, 0],
+            [ 0,   0, 0, 1],
+        ], dtype=np.float32)
+
+        # Combine rotations
+        rot = rot_yaw @ rot_roll
 
         # Scale
         scale = np.diag([self.scale[0], self.scale[1], self.scale[2], 1.0])
