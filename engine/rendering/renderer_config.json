@@ -14,12 +14,12 @@
     "near_plane": 0.1,
     "far_plane": 30.0,
     "soft_shadows": true,
-    "pcf_samples": 24,
+    "pcf_samples": 8,
     "pcf_radius": 0.02
   }, 
   "volumetric": {
     "enabled": true,
-    "samples": 40,
+    "samples": 20,
     "density": 0.9,
     "decay": 0.96,
     "weight": 0.065,
