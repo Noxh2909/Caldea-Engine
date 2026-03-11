@@ -72,22 +72,33 @@ class PhysicsWorld:
             obj.transform.position += obj.velocity * dt
 
             # collision against static AABBs
+            obj_min, obj_max = obj.collider.get_bounds(obj.transform)
+
             for static in self.static_objects:
                 min_v, max_v = static.collider.get_bounds(static.transform)
 
-                # horizontal overlap test
-                if (
-                    min_v[0] <= obj.transform.position[0] <= max_v[0]
-                    and min_v[2] <= obj.transform.position[2] <= max_v[2]
-                ):
+                # Full AABB vs AABB overlap test
+                overlap = (
+                    obj_min[0] <= max_v[0] and obj_max[0] >= min_v[0] and
+                    obj_min[1] <= max_v[1] and obj_max[1] >= min_v[1] and
+                    obj_min[2] <= max_v[2] and obj_max[2] >= min_v[2]
+                )
+
+                if overlap:
                     ground_y = max_v[1]
 
-                    was_above = prev_pos[1] >= ground_y
-                    is_now_below = obj.transform.position[1] <= ground_y
+                    # compute collider bottom
+                    bottom_now = obj_min[1]
+                    height = obj_max[1] - obj_min[1]
+                    bottom_prev = prev_pos[1] - height * 0.5
 
-                    # detect crossing from above (prevents tunneling)
+                    was_above = bottom_prev >= ground_y
+                    is_now_below = bottom_now <= ground_y
+
+                    # detect crossing using collider bottom
                     if was_above and is_now_below and obj.velocity[1] <= 0.0:
-                        obj.transform.position[1] = ground_y
+                        penetration = ground_y - bottom_now
+                        obj.transform.position[1] += penetration
                         obj.velocity[1] = 0.0
                         break
 

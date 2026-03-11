@@ -116,7 +116,7 @@
     },
     {
       "obj_name": "Lamp",
-      "gravity": false,
+      "gravity": true,
       "mesh": "sphere",
       "material": {
         "name": "sun",
