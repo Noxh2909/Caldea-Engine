@@ -3,35 +3,38 @@
     {
       "obj_name": "Wall1",
       "mesh": "cube",
+      "yaw": -90.0,
       "material": {
         "name": "wood",
-        "texture_scale_mode": "triplanar",
+        "texture_scale_mode": "default",
         "texture_scale_value": 0.1,
         "shininess": 32.0,
         "specular_strength": 0.5
       },
       "position": [4, 0, 3],
-      "scale": [0.5, 10, 10]
+      "scale": [10, 10, 0.5]
     },
     {
       "obj_name": "Wall2",
       "mesh": "cube",
+      "yaw": 90.0,
       "material": {
         "name": "wood",
-        "texture_scale_mode": "triplanar",
+        "texture_scale_mode": "default",
         "texture_scale_value": 0.1,
         "shininess": 32.0,
         "specular_strength": 0.5
       },
       "position": [-6, 0, 3],
-      "scale": [0.5, 10, 10]
+      "scale": [10, 10, 0.5]
     },
     {
       "obj_name": "Wall3",
       "mesh": "cube",
+      "yaw": 0.0,
       "material": {
         "name": "wood",
-        "texture_scale_mode": "triplanar",
+        "texture_scale_mode": "default",
         "texture_scale_value": 0.1,
         "shininess": 32.0,
         "specular_strength": 0.5
@@ -42,9 +45,10 @@
     {
       "obj_name": "Wall4",
       "mesh": "cube",
+      "yaw": 180.0,
       "material": {
         "name": "wood",
-        "texture_scale_mode": "triplanar",
+        "texture_scale_mode": "default",
         "texture_scale_value": 0.1,
         "shininess": 32.0,
         "specular_strength": 0.5
