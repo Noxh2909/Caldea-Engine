@@ -379,6 +379,15 @@ QToolTip {
             self.loaded_data[WORLD_PATH] = {"objects": []}
 
         main_layout.addSpacing(10)
+
+        # Scene title above dropdown
+        scene_label = QLabel("Scene:")
+        scene_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        scene_label.setStyleSheet(
+            "font-size: 16px; font-weight: bold; margin-bottom: 2px;"
+        )
+        main_layout.addWidget(scene_label)
+
         # Dropdown for objects
         self.object_dropdown = QComboBox()
         self.object_dropdown.setFixedHeight(30)
