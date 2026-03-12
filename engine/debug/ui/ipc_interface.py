@@ -7,12 +7,16 @@ from PySide6.QtWidgets import (
     QPushButton,
     QLineEdit,
     QComboBox,
+    QScrollArea,
 )
+from PySide6.QtGui import QPixmap, QCursor
+from PySide6.QtWidgets import QToolTip
 from PySide6.QtCore import Qt
 import json
 import sys
 import os
 import socket
+import re
 
 WORLD_PATH = "engine/world_gen.json"
 RENDERER_PATH = "engine/rendering/renderer_config.json"
@@ -21,6 +25,7 @@ RENDERER_PATH = "engine/rendering/renderer_config.json"
 # ------------------------------------------------------------
 # IPC CLIENT
 # ------------------------------------------------------------
+
 
 class IPCClient:
     def __init__(self, host="127.0.0.1", port=5050):
@@ -50,6 +55,7 @@ class IPCClient:
 # VALUE CONTROL
 # ------------------------------------------------------------
 
+
 class JsonValueControl(QWidget):
     def __init__(self, label, value, on_change):
         super().__init__()
@@ -58,25 +64,163 @@ class JsonValueControl(QWidget):
         self.on_change = on_change
 
         layout = QHBoxLayout()
-        layout.setContentsMargins(4, 0, 4, 0)
-        # layout.setSpacing(3)
+        layout.setContentsMargins(6, 0, 6, 0)
+        layout.setSpacing(10)
         self.setLayout(layout)
 
         # Show only last part of path as label
-        clean_label = label.split('.')[-1]
-        clean_label = clean_label.split('[')[0]
+        clean_label = label.split(".")[-1]
+        clean_label = clean_label.split("[")[0]
+
+        # Fields where stepping with < > does not make sense
+        no_step_fields = {
+            "texture_scale_mode",
+            "obj_name",
+            "name",
+            "double_sided",
+            "path",
+            "loop",
+            "mesh",
+            "gravity",
+            "glb_path",
+        }
 
         self.label = QLabel(clean_label)
         self.label.setFixedWidth(160)
+        layout.addWidget(self.label)
+        layout.addStretch(1)
+
+        self.minus_btn = QPushButton("<")
+        self.minus_btn.setFixedSize(28, 28)
+        self.minus_btn.setStyleSheet(
+            """
+QPushButton {
+    border-radius: 8px;
+    border: 1px solid #444;
+    background-color: #2a2a2a;
+    color: white;
+}
+QPushButton:hover {
+    background-color: #3a3a3a;
+}
+QPushButton:pressed {
+    background-color: #505050;
+}
+"""
+        )
 
         self.field = QLineEdit(self._format_value(value))
         self.field.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.field.setFixedSize(150, 24)
+        self.field.setFixedSize(140, 28)
+        self.field.setStyleSheet(
+            """
+QLineEdit {
+    border-radius: 10px;
+    border: 1px solid #444;
+    background-color: #1e1e1e;
+    color: white;
+    padding: 2px 6px;
+}
+QLineEdit:focus {
+    border: 1px solid #6aa9ff;
+}
+"""
+        )
+
+        self.plus_btn = QPushButton(">")
+        self.plus_btn.setFixedSize(28, 28)
+        self.plus_btn.setStyleSheet(
+            """
+QPushButton {
+    border-radius: 8px;
+    border: 1px solid #444;
+    background-color: #2a2a2a;
+    color: white;
+}
+QPushButton:hover {
+    background-color: #3a3a3a;
+}
+QPushButton:pressed {
+    background-color: #505050;
+}
+"""
+        )
 
         self.field.editingFinished.connect(self._commit)
 
-        layout.addWidget(self.label)
+        self.minus_btn.clicked.connect(self._decrement)
+        self.plus_btn.clicked.connect(self._increment)
+
+        button_gap = 6
+
+        # Always keep buttons in layout so alignment stays identical
+        layout.addWidget(self.minus_btn)
+        layout.addSpacing(button_gap)
+
         layout.addWidget(self.field)
+        layout.addSpacing(button_gap)
+
+        layout.addWidget(self.plus_btn)
+        layout.addSpacing(button_gap)
+
+        # ------------------------------------------------------------
+        # Info icon (only for mesh field)
+        # ------------------------------------------------------------
+        self.info_label = QLabel("ⓘ")
+        self.info_label.setFixedWidth(18)
+        self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.info_label.setCursor(Qt.CursorShape.PointingHandCursor)
+
+        # ensure tooltip events always work
+        self.info_label.setAttribute(Qt.WidgetAttribute.WA_AlwaysShowToolTips, True)
+        self.info_label.setMouseTracking(True)
+        self.info_label.setToolTipDuration(5000)
+        self.info_label.setStyleSheet(
+            """
+QLabel {
+    color: #8aaaff;
+    font-weight: bold;
+}
+"""
+        )
+
+        # Tooltip texts per field
+        tooltip_map = {
+            "mesh": "Name of the mesh asset loaded from MeshRegistry.\nExample: cube, sphere, cloth.",
+            "double_sided": "Render the material on both sides of the surface.\nUseful for cloth or thin geometry.",
+            "obj_name": "Unique identifier for this object in the world JSON.",
+            "name": "Material name used from the MaterialRegistry.",
+            "path": "Audio file path used by the audio component.",
+            "loop": "If enabled, the audio will continuously loop.",
+            "texture_scale_mode": "How the material scales the texture:\n- default: uses the base material's UV scale\n- triplanar: uses triplanar projection for texture mapping.",
+            "gravity": "If enabled, the object will be affected by gravity in the physics simulation.",
+        }
+
+        self.info_text = tooltip_map.get(clean_label)
+
+        # Force tooltip display on hover (macOS fix)
+        if self.info_text:
+            self.info_label.enterEvent = lambda event: QToolTip.showText(
+                QCursor.pos(), self.info_text or ""
+            )
+
+        # Always reserve icon space so layout never shifts
+        layout.addWidget(self.info_label)
+
+        # Only show the icon for tooltip fields but keep the space for all rows
+        if self.info_text:
+            self.info_label.setText("ⓘ")
+        else:
+            # keep placeholder width but make it invisible
+            self.info_label.setText("")
+
+        # For fields where stepping makes no sense, visually hide buttons
+        if clean_label in no_step_fields:
+            self.minus_btn.setDisabled(True)
+            self.plus_btn.setDisabled(True)
+
+            self.minus_btn.setStyleSheet("background-color: transparent; border: none;")
+            self.plus_btn.setStyleSheet("background-color: transparent; border: none;")
 
         self._value = value
 
@@ -84,13 +228,13 @@ class JsonValueControl(QWidget):
         if isinstance(value, float):
             return f"{value:.1f}"
         if isinstance(value, list):
-            return str([round(v,1) if isinstance(v,float) else v for v in value])
+            return str([round(v, 1) if isinstance(v, float) else v for v in value])
         return str(value)
 
     def _commit(self):
         text = self.field.text()
         try:
-            if text.startswith('['):
+            if text.startswith("["):
                 new_value = json.loads(text)
             else:
                 # try float
@@ -102,23 +246,116 @@ class JsonValueControl(QWidget):
         except Exception:
             pass
 
+    def _increment(self):
+        try:
+            text = self.field.text()
+
+            # Vector like [1,2,3]
+            if text.startswith("["):
+                arr = json.loads(text)
+                new_arr = []
+                for v in arr:
+                    if isinstance(v, (int, float)):
+                        new_arr.append(round(v + 0.5, 1))
+                    else:
+                        new_arr.append(v)
+
+                self.field.setText(str(new_arr))
+                self._commit()
+                return
+
+            value = float(text)
+            value = round(value + 0.5, 1)
+            self.field.setText(str(value))
+            self._commit()
+
+        except:
+            pass
+
+    def _decrement(self):
+        try:
+            text = self.field.text()
+
+            if text.startswith("["):
+                arr = json.loads(text)
+                new_arr = []
+                for v in arr:
+                    if isinstance(v, (int, float)):
+                        new_arr.append(round(v - 0.5, 1))
+                    else:
+                        new_arr.append(v)
+
+                self.field.setText(str(new_arr))
+                self._commit()
+                return
+
+            value = float(text)
+            value = round(value - 0.5, 1)
+            self.field.setText(str(value))
+            self._commit()
+
+        except:
+            pass
+
 
 # ------------------------------------------------------------
 # DEBUG INTERFACE
 # ------------------------------------------------------------
+
 
 class DebugInterface(QWidget):
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle("Caldea Debug Panel")
-        self.setFixedSize(500, 800) 
+        self.setFixedSize(500, 800)
 
         self.ipc = IPCClient()
         self.loaded_data = {}
 
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
+
+        # Global tooltip styling
+        self.setStyleSheet(
+            self.styleSheet()
+            + """
+QToolTip {
+    background-color: #2a2a2a;
+    color: white;
+    border: 1px solid #555;
+    padding: 6px;
+    margin: 0px;
+    border-radius: 6px;
+}
+"""
+        )
+
+        # ------------------------------------------------------------
+        # TOP ICON
+        # ------------------------------------------------------------
+        icon_label = QLabel()
+        icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        icon_path = "caldea_engine_icon.png"
+        if os.path.exists(icon_path):
+            pix = QPixmap(icon_path)
+
+            # Only downscale if the icon is larger than the target size
+            target_size = 160
+            if pix.height() > target_size or pix.width() > target_size:
+                pix = pix.scaled(
+                    target_size,
+                    target_size,
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation,
+                )
+
+            icon_label.setPixmap(pix)
+
+        main_layout.addSpacing(2)
+        main_layout.addWidget(icon_label)
+        main_layout.addSpacing(2)
 
         # Load world JSON
         if os.path.exists(WORLD_PATH):
@@ -127,6 +364,7 @@ class DebugInterface(QWidget):
         else:
             self.loaded_data[WORLD_PATH] = {"objects": []}
 
+        main_layout.addSpacing(10)
         # Dropdown for objects
         self.object_dropdown = QComboBox()
         self.object_dropdown.setFixedHeight(30)
@@ -134,15 +372,45 @@ class DebugInterface(QWidget):
 
         self.object_dropdown.currentIndexChanged.connect(self._reload_object_controls)
 
-        # Container for value controls
-        self.controls_container = QVBoxLayout()
-        self.controls_container.setSpacing(2)
-        self.controls_container.setContentsMargins(0, 0, 0, 0)
-        main_layout.addLayout(self.controls_container)
+        # Scrollable container for controls
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+
+        self.scroll_widget = QWidget()
+        self.controls_container = QVBoxLayout(self.scroll_widget)
+        self.controls_container.setSpacing(6)
+        self.controls_container.setContentsMargins(4, 4, 4, 4)
+        self.controls_container.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.scroll_area.setWidget(self.scroll_widget)
+
+        # prevent horizontal squeezing and keep layout stable
+        self.scroll_area.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+
+        main_layout.addWidget(self.scroll_area)
 
         # Save button
-        self.save_button = QPushButton("Save JSON To Disk")
-        self.save_button.setFixedHeight(30)
+        self.save_button = QPushButton("Save Config")
+        self.save_button.setFixedHeight(34)
+        self.save_button.setStyleSheet(
+            """
+QPushButton {
+    border-radius: 12px;
+    border: 1px solid #444;
+    background-color: #2a2a2a;
+    color: white;
+    padding: 4px 10px;
+}
+QPushButton:hover {
+    background-color: #3a3a3a;
+}
+QPushButton:pressed {
+    background-color: #505050;
+}
+"""
+        )
         self.save_button.clicked.connect(self._save_all)
         main_layout.addWidget(self.save_button)
 
@@ -191,35 +459,35 @@ class DebugInterface(QWidget):
         obj = objects[index]
 
         # ----------------------------
-        # OBJECT SECTION
+        # OBJECT NAME
         # ----------------------------
-        self._add_section_header("Objekt:")
+        self._add_section_header("Object")
 
-        for key in ["obj_name", "mesh"]:
-            if key in obj:
-                self._create_control(f"objects[{index}].{key}", obj[key])
-
-        # ----------------------------
-        # MATERIAL SECTION
-        # ----------------------------
-        if "material" in obj:
-            self._add_section_header("Material:")
-            material = obj["material"]
-            for key, value in material.items():
-                self._create_control(
-                    f"objects[{index}].material.{key}", value
-                )
+        if "obj_name" in obj:
+            self._create_control(f"objects[{index}].obj_name", obj["obj_name"])
 
         # ----------------------------
-        # PROPERTIES SECTION
+        # DYNAMIC PROPERTY BUILD
         # ----------------------------
-        self._add_section_header("Properties:")
+        for key, value in obj.items():
 
-        for key in obj:
-            if key not in ["obj_name", "mesh", "material"]:
-                self._create_control(
-                    f"objects[{index}].{key}", obj[key]
-                )
+            if key == "obj_name":
+                continue
+
+            # Nested dict (material, light, cloth, audio...)
+            if isinstance(value, dict):
+                self._add_section_header(key.capitalize())
+
+                for sub_key, sub_value in value.items():
+                    path = f"objects[{index}].{key}.{sub_key}"
+                    self._create_control(path, sub_value)
+
+            else:
+                path = f"objects[{index}].{key}"
+                self._create_control(path, value)
+
+        # keep controls packed at the top so spacing stays consistent
+        self.controls_container.addStretch()
 
     def _build_object_controls(self, data, current_path):
         if isinstance(data, dict):
@@ -269,8 +537,33 @@ class DebugInterface(QWidget):
     # ------------------------------------------------------------
 
     def _save_all(self):
+        data = self.loaded_data[WORLD_PATH]
+
+        formatted = json.dumps(
+            data,
+            indent=2,
+            ensure_ascii=False,
+            separators=(", ", ": "),
+        )
+
+        # collapse numeric arrays into single line
+        def collapse_array(match):
+            values = match.group(1)
+            values = values.replace("\n", " ")
+            values = re.sub(r"\s+", " ", values).strip()
+            return f"[{values}]"
+
+        formatted = re.sub(
+            r"\[\s*\n\s*([0-9\.\-,\s]+?)\s*\n\s*\]",
+            collapse_array,
+            formatted,
+            flags=re.MULTILINE,
+        )
+
+        formatted += "\n"
+
         with open(WORLD_PATH, "w") as f:
-            json.dump(self.loaded_data[WORLD_PATH], f, indent=2)
+            f.write(formatted)
 
 
 # ------------------------------------------------------------

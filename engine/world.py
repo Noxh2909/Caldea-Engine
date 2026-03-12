@@ -50,6 +50,10 @@ class World:
         glb_path = data.get("glb_path")
 
         if glb_path:
+            # allow JSON to only specify the filename (e.g. "lamp.glb")
+            if not glb_path.startswith("assets/"):
+                glb_path = str(Path("assets/models") / glb_path)
+
             loader = GLBLoader(glb_path)
             glb_data = loader.load_first_mesh()
             mesh = Mesh(glb_data["vertices"], glb_data["indices"])
