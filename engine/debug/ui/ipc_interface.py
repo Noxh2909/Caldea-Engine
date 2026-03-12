@@ -188,12 +188,26 @@ QLabel {
         tooltip_map = {
             "mesh": "Name of the mesh asset loaded from MeshRegistry.\nExample: cube, sphere, cloth.",
             "double_sided": "Render the material on both sides of the surface.\nUseful for cloth or thin geometry.",
+            "opacity": "Transparency level of the material.\nRange: 0 (fully transparent) to 1 (fully opaque).",
+            "position": "World position of the object in the format [x, y, z].\n x=left/right, y=up/down, z=forward/backward.",
+            "yaw": "Rotation around the vertical axis in degrees. Changes the direction the object is facing.",
+            "shininess": "How shiny the material is. Higher values create smaller, sharper highlights.\nRange: 0 (dull) to 100+ (very shiny).\npseudo-reflective",
+            "specular_strength": "Intensity of the specular highlight. Higher values make the highlight brighter.\nRange: 0 (no highlight) to 1 (full brightness).",
             "obj_name": "Unique identifier for this object in the world JSON.",
             "name": "Material name used from the MaterialRegistry.",
-            "path": "Audio file path used by the audio component.",
+            "path": "Audio file used by the audio component.\nengine/audio/audiosamples/",
             "loop": "If enabled, the audio will continuously loop.",
+            "scale": "Uniform scale of the object.\n[x, y, z], x=left/right, y=up/down, z=forward/backward.\nDefault is [1, 1, 1]. [2.0, 2.0, 2.0] would be double size, [0.5, 0.5, 0.5] would be half size.",
             "texture_scale_mode": "How the material scales the texture:\n- default: uses the base material's UV scale\n- triplanar: uses triplanar projection for texture mapping.",
+            "texture_scale_value": "Uniform scale applied to the material's texture coordinates.\nOnly used if texture_scale_mode is 'triplanar' or 'default' with a base material that has a texture.",
             "gravity": "If enabled, the object will be affected by gravity in the physics simulation.",
+            "ambient_strength": "Intensity of the ambient light component. Higher values brighten the overall scene.\nRange: 0 (no ambient light) to 1+ (very bright).",
+            "direction": "Direction vector of the light source.\n[x, y, z], where x=left/right, y=up/down, z=forward/backward.\nFor directional lights, this defines the direction the light is pointing.\n[0, 1, 0] would be a light shining straight down.",
+            "color": "Color of the light in RGB format.\nValues are between 0 and 1. [1, 1, 1] is white light, [1, 0, 0] is red light, [0, 1, 0] is green light, and [0, 0, 1] is blue light.",
+            "intensity": "Brightness of the light source. Higher values create a brighter light.\nRange: 0 (no light) to 10+ (very bright).",
+            "max_distance": "Maximum distance of sound attenuation. Beyond this distance, the sound will no longer be audible.\nOnly used by audio components.",
+            "rolloff": "Determines how quickly the sound attenuates with distance. Higher values cause the sound to fade out more rapidly as you move away from the source.\nOnly used by audio components.",
+            "fade_ratio": "Controls the smoothness of the sound fade as it approaches the max_distance. A higher fade ratio creates a more gradual fade-out.\nOnly used by audio components.",
         }
 
         self.info_text = tooltip_map.get(clean_label)
