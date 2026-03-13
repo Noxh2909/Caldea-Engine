@@ -124,10 +124,11 @@
       "mesh": "sphere", 
       "material": {
         "name": "sun", 
+        "opacity": 1.0,
         "shininess": 100.0, 
         "specular_strength": 1.0
       }, 
-      "position": [-5, 1.4, 3.0], 
+      "position": [-5, 1.6, 3.0], 
       "scale": [0.2, 0.2, 0.2], 
       "light": {
         "ambient_strength": 0.08, 

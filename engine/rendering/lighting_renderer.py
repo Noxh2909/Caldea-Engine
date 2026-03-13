@@ -713,7 +713,6 @@ class LightRenderer:
     def cache_uniform_locations(self) -> None:
         """Query and store frequently accessed uniform locations."""
 
-        # Depth program uniforms
         self.depth_model_loc = GL.glGetUniformLocation(self.depth_program, "model")
         self.depth_light_pos_loc = GL.glGetUniformLocation(
             self.depth_program, "lightPos"
@@ -721,16 +720,12 @@ class LightRenderer:
         self.depth_far_plane_loc = GL.glGetUniformLocation(
             self.depth_program, "far_plane"
         )
-
-        # G-buffer program uniforms
         self.g_model_loc = GL.glGetUniformLocation(self.geometry_program, "model")
         self.g_view_loc = GL.glGetUniformLocation(self.geometry_program, "view")
         self.g_proj_loc = GL.glGetUniformLocation(self.geometry_program, "projection")
         self.g_object_color_loc = GL.glGetUniformLocation(
             self.geometry_program, "objectColor"
         )
-
-        # Final shader uniforms
         self.final_is_skinned_loc = GL.glGetUniformLocation(
             self.final_program, "u_is_skinned"
         )
@@ -780,6 +775,33 @@ class LightRenderer:
         )
         self.final_opacity_loc = GL.glGetUniformLocation(
             self.final_program, "u_opacity"
+        )
+        self.final_texture_loc = GL.glGetUniformLocation(
+            self.final_program, "u_texture"
+        )
+        self.final_use_texture_loc = GL.glGetUniformLocation(
+            self.final_program, "u_use_texture"
+        )
+        self.final_texture_mode_loc = GL.glGetUniformLocation(
+            self.final_program, "u_texture_mode"
+        )
+        self.final_triplanar_scale_loc = GL.glGetUniformLocation(
+            self.final_program, "u_triplanar_scale"
+        )
+        self.final_far_plane_loc = GL.glGetUniformLocation(
+            self.final_program, "far_plane"
+        )
+        self.final_depth_map_loc = GL.glGetUniformLocation(
+            self.final_program, "depthMap"
+        )
+        self.final_ssao_texture_loc = GL.glGetUniformLocation(
+            self.final_program, "ssaoTexture"
+        )
+        self.ssao_gpos_loc = GL.glGetUniformLocation(self.ssao_program, "gPosition")
+        self.ssao_gnormal_loc = GL.glGetUniformLocation(self.ssao_program, "gNormal")
+        self.ssao_noise_loc = GL.glGetUniformLocation(self.ssao_program, "noiseTex")
+        self.ssao_blur_input_loc = GL.glGetUniformLocation(
+            self.ssao_blur_program, "ssaoInput"
         )
 
     # -----------------------
@@ -1016,15 +1038,15 @@ class LightRenderer:
         # G-buffer inputs
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.ssao_data["g_position"])
-        GL.glUniform1i(GL.glGetUniformLocation(self.ssao_program, "gPosition"), 0)
+        GL.glUniform1i(self.ssao_gpos_loc, 0)
 
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.ssao_data["g_normal"])
-        GL.glUniform1i(GL.glGetUniformLocation(self.ssao_program, "gNormal"), 1)
+        GL.glUniform1i(self.ssao_gnormal_loc, 1)
 
         GL.glActiveTexture(GL.GL_TEXTURE2)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.ssao_noise_texture)
-        GL.glUniform1i(GL.glGetUniformLocation(self.ssao_program, "noiseTex"), 2)
+        GL.glUniform1i(self.ssao_noise_loc, 2)
 
         # fullscreen quad
         GL.glBindVertexArray(self.quad_vao)
@@ -1039,7 +1061,7 @@ class LightRenderer:
 
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.ssao_data["ssao_tex"])
-        GL.glUniform1i(GL.glGetUniformLocation(self.ssao_blur_program, "ssaoInput"), 0)
+        GL.glUniform1i(self.ssao_blur_input_loc, 0)
 
         GL.glBindVertexArray(self.quad_vao)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
@@ -1274,14 +1296,10 @@ class LightRenderer:
         if mannequin.material.texture is not None:
             GL.glActiveTexture(GL.GL_TEXTURE3)
             GL.glBindTexture(GL.GL_TEXTURE_2D, mannequin.material.texture)
-            GL.glUniform1i(GL.glGetUniformLocation(self.final_program, "u_texture"), 3)
-            GL.glUniform1i(
-                GL.glGetUniformLocation(self.final_program, "u_use_texture"), 1
-            )
+            GL.glUniform1i(self.final_texture_loc, 3)
+            GL.glUniform1i(self.final_use_texture_loc, 1)
         else:
-            GL.glUniform1i(
-                GL.glGetUniformLocation(self.final_program, "u_use_texture"), 0
-            )
+            GL.glUniform1i(self.final_use_texture_loc, 0)
 
         GL.glUniform1f(
             self.final_specular_strength_loc, mannequin.material.specular_strength
@@ -1344,7 +1362,12 @@ class LightRenderer:
         # =========================
         # Global uniforms
         # =========================
-        GL.glUniformMatrix4fv(self.final_proj_loc, 1, GL.GL_TRUE, self.camera.get_projection_matrix(self.width / self.height))
+        GL.glUniformMatrix4fv(
+            self.final_proj_loc,
+            1,
+            GL.GL_TRUE,
+            self.camera.get_projection_matrix(self.width / self.height),
+        )
         GL.glUniformMatrix4fv(
             self.final_view_loc, 1, GL.GL_TRUE, camera.get_view_matrix()
         )
@@ -1360,7 +1383,7 @@ class LightRenderer:
         GL.glUniform1f(self.final_ambient_strength_loc, self.light_ambient)
 
         GL.glUniform1f(
-            GL.glGetUniformLocation(self.final_program, "far_plane"),
+            self.final_far_plane_loc,
             utils.shadow_cfg.get("far_plane"),
         )
 
@@ -1378,11 +1401,11 @@ class LightRenderer:
         # =========================
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, self.depth_texture)
-        GL.glUniform1i(GL.glGetUniformLocation(self.final_program, "depthMap"), 0)
+        GL.glUniform1i(self.final_depth_map_loc, 0)
 
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.ssao_data["ssao_blur_texture"])
-        GL.glUniform1i(GL.glGetUniformLocation(self.final_program, "ssaoTexture"), 1)
+        GL.glUniform1i(self.final_ssao_texture_loc, 1)
 
         # =========================
         # Split opaque / transparent
@@ -1432,35 +1455,22 @@ class LightRenderer:
             if obj.material.texture is not None:
                 GL.glActiveTexture(GL.GL_TEXTURE3)
                 GL.glBindTexture(GL.GL_TEXTURE_2D, obj.material.texture)
-                GL.glUniform1i(
-                    GL.glGetUniformLocation(self.final_program, "u_texture"), 3
-                )
-                GL.glUniform1i(
-                    GL.glGetUniformLocation(self.final_program, "u_use_texture"), 1
-                )
+                GL.glUniform1i(self.final_texture_loc, 3)
+                GL.glUniform1i(self.final_use_texture_loc, 1)
             else:
-                GL.glUniform1i(
-                    GL.glGetUniformLocation(self.final_program, "u_use_texture"), 0
-                )
+                GL.glUniform1i(self.final_use_texture_loc, 0)
 
             # Triplanar
             mode = getattr(obj.material, "texture_scale_mode", "default")
 
             if mode == "default":
-                GL.glUniform1i(
-                    GL.glGetUniformLocation(self.final_program, "u_texture_mode"), 0
-                )
-                GL.glUniform1f(
-                    GL.glGetUniformLocation(self.final_program, "u_triplanar_scale"),
-                    1.0,
-                )
+                GL.glUniform1i(self.final_texture_mode_loc, 0)
+                GL.glUniform1f(self.final_triplanar_scale_loc, 1.0)
 
             elif mode == "triplanar":
-                GL.glUniform1i(
-                    GL.glGetUniformLocation(self.final_program, "u_texture_mode"), 1
-                )
+                GL.glUniform1i(self.final_texture_mode_loc, 1)
                 GL.glUniform1f(
-                    GL.glGetUniformLocation(self.final_program, "u_triplanar_scale"),
+                    self.final_triplanar_scale_loc,
                     getattr(obj.material, "texture_scale_value"),
                 )
 
@@ -1518,39 +1528,22 @@ class LightRenderer:
                 if obj.material.texture is not None:
                     GL.glActiveTexture(GL.GL_TEXTURE3)
                     GL.glBindTexture(GL.GL_TEXTURE_2D, obj.material.texture)
-                    GL.glUniform1i(
-                        GL.glGetUniformLocation(self.final_program, "u_texture"), 3
-                    )
-                    GL.glUniform1i(
-                        GL.glGetUniformLocation(self.final_program, "u_use_texture"), 1
-                    )
+                    GL.glUniform1i(self.final_texture_loc, 3)
+                    GL.glUniform1i(self.final_use_texture_loc, 1)
                 else:
-                    GL.glUniform1i(
-                        GL.glGetUniformLocation(self.final_program, "u_use_texture"), 0
-                    )
+                    GL.glUniform1i(self.final_use_texture_loc, 0)
 
                 # Triplanar
                 mode = getattr(obj.material, "texture_scale_mode", "default")
 
                 if mode == "default":
-                    GL.glUniform1i(
-                        GL.glGetUniformLocation(self.final_program, "u_texture_mode"), 0
-                    )
-                    GL.glUniform1f(
-                        GL.glGetUniformLocation(
-                            self.final_program, "u_triplanar_scale"
-                        ),
-                        1.0,
-                    )
+                    GL.glUniform1i(self.final_texture_mode_loc, 0)
+                    GL.glUniform1f(self.final_triplanar_scale_loc, 1.0)
 
                 elif mode == "triplanar":
-                    GL.glUniform1i(
-                        GL.glGetUniformLocation(self.final_program, "u_texture_mode"), 1
-                    )
+                    GL.glUniform1i(self.final_texture_mode_loc, 1)
                     GL.glUniform1f(
-                        GL.glGetUniformLocation(
-                            self.final_program, "u_triplanar_scale"
-                        ),
+                        self.final_triplanar_scale_loc,
                         getattr(obj.material, "texture_scale_value"),
                     )
 
