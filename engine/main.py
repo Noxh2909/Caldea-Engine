@@ -330,7 +330,7 @@ def main_loop(engine):
                 @ engine["camera"].get_view_matrix()
             )
 
-            for obj in engine["physics"].static_objects:
+            for obj in engine["world"].objects:
                 if hasattr(obj, "collider") and obj.collider is not None:
                     corners = obj.collider.get_corners(obj.transform)
 

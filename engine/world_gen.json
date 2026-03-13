@@ -97,7 +97,7 @@
     },
     {
       "obj_name": "Lamp", 
-      "gravity": "false", 
+      "gravity": false, 
       "mesh": "sphere", 
       "material": {
         "name": "sun", 
@@ -105,7 +105,7 @@
         "shininess": 100.0, 
         "specular_strength": 1.0
       }, 
-      "position": [-5, 1.6, 3.0], 
+      "position": [-5, 3.0, 3.0], 
       "scale": [0.2, 0.2, 0.2], 
       "light": {
         "ambient_strength": 0.08, 
@@ -122,7 +122,7 @@
       "scale": [2.0, 2.0, 2.0], 
       "yaw": 180.0, 
       "material": {
-        "name": "white", 
+        "name": "wallpaper", 
         "shininess": 16.0, 
         "specular_strength": 0.3
       }
@@ -131,11 +131,11 @@
       "obj_name": "Plattenspieler", 
       "gravity": true, 
       "glb_path": "plattenspieler.glb", 
-      "position": [-1.0, 2.8, 7.2], 
+      "position": [-1.0, 2.9, 7.2], 
       "scale": [0.5, 0.5, 0.5], 
       "yaw": -90.0, 
       "material": {
-        "name": "white", 
+        "name": "wallpaper", 
         "shininess": 16.0, 
         "specular_strength": 0.3
       }, 
