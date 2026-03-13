@@ -12,8 +12,7 @@ from input import InputState
 from gameobjects.player.player import Player
 from gameobjects.player.camera import Camera
 from gameobjects.transform import Transform
-from gameobjects.material_lookup import Material
-from gameobjects.mesh import Mesh, MeshRegistry
+from gameobjects.mesh import Mesh
 from gameobjects.collider.aabb import AABBCollider
 from gameobjects.object import GameObject
 from gameobjects.vertec import plane_vertices
@@ -279,7 +278,6 @@ def main_loop(engine):
         engine["renderer"].render_ssao_pass(engine["camera"], visible_objects)
 
         engine["renderer"].render_final_pass(
-            None,
             engine["player"],
             engine["camera"],
             visible_objects,

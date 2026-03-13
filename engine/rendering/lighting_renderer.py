@@ -726,9 +726,6 @@ class LightRenderer:
         self.g_object_color_loc = GL.glGetUniformLocation(
             self.geometry_program, "objectColor"
         )
-        self.final_is_skinned_loc = GL.glGetUniformLocation(
-            self.final_program, "u_is_skinned"
-        )
         self.final_model_loc = GL.glGetUniformLocation(self.final_program, "model")
         self.final_view_loc = GL.glGetUniformLocation(self.final_program, "view")
         self.final_proj_loc = GL.glGetUniformLocation(self.final_program, "projection")
@@ -760,7 +757,6 @@ class LightRenderer:
         self.final_reflection_vp_loc = GL.glGetUniformLocation(
             self.final_program, "reflectionViewProj"
         )
-        self.final_bones_loc = GL.glGetUniformLocation(self.final_program, "u_bones")
         self.final_soft_shadows_loc = GL.glGetUniformLocation(
             self.final_program, "u_softShadows"
         )
@@ -1261,55 +1257,6 @@ class LightRenderer:
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
-    # ----------------
-    # Render Mannequin
-    # ----------------
-    # Here we render the player mannequin separately to avoid SSAO and shadows on it.
-    # This ensures the mannequin is always clearly visible to the player.
-    # It is drawn after the main scene rendering.
-    # ----------------
-
-    def render_player(self, mannequin):
-        """
-        Render player mannequin in final pass.
-
-        Drawn after main scene to avoid unwanted SSAO/shadow
-        artifacts on the player model.
-        """
-
-        GL.glDisable(GL.GL_BLEND)
-        GL.glDisable(GL.GL_CULL_FACE)
-
-        GL.glUseProgram(self.final_program)
-
-        # Mannequin wird aktuell NICHT geskinnt
-        GL.glUniform1i(self.final_is_skinned_loc, 0)
-
-        GL.glUniformMatrix4fv(self.final_model_loc, 1, GL.GL_TRUE, mannequin.matrix())
-
-        GL.glUniform3f(self.final_object_color_loc, *mannequin.material.color)
-
-        # --- BONES ---
-        bones = mannequin.skeleton.bone_matrices
-        GL.glUniformMatrix4fv(self.final_bones_loc, bones.shape[0], GL.GL_FALSE, bones)
-
-        if mannequin.material.texture is not None:
-            GL.glActiveTexture(GL.GL_TEXTURE3)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, mannequin.material.texture)
-            GL.glUniform1i(self.final_texture_loc, 3)
-            GL.glUniform1i(self.final_use_texture_loc, 1)
-        else:
-            GL.glUniform1i(self.final_use_texture_loc, 0)
-
-        GL.glUniform1f(
-            self.final_specular_strength_loc, mannequin.material.specular_strength
-        )
-        GL.glUniform1f(self.final_shininess_loc, mannequin.material.shininess)
-        print("Bone[0] matrix:\n", mannequin.skeleton.bone_matrices[0])
-        mannequin.mesh.draw()
-
-        GL.glEnable(GL.GL_CULL_FACE)
-
     # -----------------------
     # Final pass
     # -----------------------
@@ -1319,7 +1266,6 @@ class LightRenderer:
 
     def render_final_pass(
         self,
-        mannequin,
         player,
         camera,
         scene_objects: list[RenderObject],
@@ -1557,12 +1503,6 @@ class LightRenderer:
 
             GL.glDepthMask(GL.GL_TRUE)
             GL.glDisable(GL.GL_BLEND)
-
-        # =========================
-        # Draw player mannequin
-        # =========================
-        if mannequin is not None:
-            self.render_player(mannequin)
 
         # =========================
         # Debug Grid (3D world space inside HDR FBO)

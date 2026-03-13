@@ -13,37 +13,14 @@ class Mesh:
         positions: np.ndarray | None = None,
         normals: np.ndarray | None = None,
         uvs: np.ndarray | None = None,
-        bone_ids: np.ndarray | None = None,
-        bone_weights: np.ndarray | None = None,
     ):
         """
-        Create a Mesh object and upload geometry to the GPU.
+        Static mesh implementation (no skeletal animation).
 
-        Parameters
-        ----------
-        vertices : np.ndarray | None
-            Interleaved vertex buffer containing:
-            [position(3), normal(3), uv(2)] or
-            [position(3), normal(3), uv(2), weights(4)] for skinned meshes.
-
-        indices : np.ndarray | None
-            Optional index buffer used for indexed rendering.
-
-        positions : np.ndarray | None
-            Vertex positions (Nx3) used when constructing the interleaved buffer.
-
-        normals : np.ndarray | None
-            Vertex normals (Nx3).
-
-        uvs : np.ndarray | None
-            Texture coordinates (Nx2).
-
-        bone_ids : np.ndarray | None
-            Bone indices for skeletal animation (Nx4).
-
-        bone_weights : np.ndarray | None
-            Bone weights corresponding to bone_ids (Nx4).
+        Vertex layout:
+        position (3) | normal (3) | uv (2)
         """
+
         # --- Build interleaved vertex buffer ---
         if vertices is None:
             assert (
@@ -56,51 +33,27 @@ class Mesh:
 
             vcount = positions.shape[0]
 
-            # Decide layout: static (8 floats) or skinned (8 floats + 4 u16 + 4 floats)
-            is_skinned = bone_ids is not None and bone_weights is not None
-
-            if is_skinned:
-                assert bone_ids is not None and bone_weights is not None
-                assert bone_ids.shape == (vcount, 4)
-                assert bone_weights.shape == (vcount, 4)
-
-                # positions(3) normals(3) uvs(2) weights(4)
-                vertices = np.zeros((vcount, 12), dtype=np.float32)
-                vertices[:, 0:3] = positions
-                vertices[:, 3:6] = normals
-                vertices[:, 6:8] = uvs
-                vertices[:, 8:12] = bone_weights
-
-                # bone IDs stored separately (uint16)
-                self.bone_ids = bone_ids.astype(np.uint16)
-                self.bone_weights = bone_weights.astype(np.float32)
-            else:
-                vertices = np.zeros((vcount, 8), dtype=np.float32)
-                vertices[:, 0:3] = positions
-                vertices[:, 3:6] = normals
-                vertices[:, 6:8] = uvs
-
-                self.bone_ids = None
-                self.bone_weights = None
+            vertices = np.zeros((vcount, 8), dtype=np.float32)
+            vertices[:, 0:3] = positions
+            vertices[:, 3:6] = normals
+            vertices[:, 6:8] = uvs
 
             vertices = vertices.reshape(-1)
-            self.is_skinned = is_skinned
-        else:
-            self.bone_ids = None
-            self.bone_weights = None
-            self.is_skinned = False
 
-        stride_floats = 12 if self.is_skinned else 8
+        # Static mesh layout
+        stride_floats = 8
+
         self.vertex_count = vertices.size // stride_floats
-        # store vertex positions (Nx3) for systems like physics/colliders
+
         reshaped_vertices = vertices.reshape(self.vertex_count, stride_floats)
         self.positions = reshaped_vertices[:, 0:3].copy()
-        # Store layout info for dynamic position updates
+
         self.stride_floats = stride_floats
         self.stride_bytes = stride_floats * 4
+
         self.index_count = len(indices) if indices is not None else 0
         self.has_indices = indices is not None
-        # keep CPU-side index copy for tools / collision systems
+
         self.indices = indices.copy() if indices is not None else None
 
         self.vao = GL.glGenVertexArrays(1)
@@ -108,13 +61,13 @@ class Mesh:
         self.ebo = GL.glGenBuffers(1) if self.has_indices else None
 
         GL.glBindVertexArray(self.vao)
+
         # VBO
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
         GL.glBufferData(
             GL.GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL.GL_DYNAMIC_DRAW
         )
 
-        # Keep CPU-side copy for efficient dynamic updates
         self._vertex_buffer = vertices.copy()
 
         # EBO (optional)
@@ -127,7 +80,7 @@ class Mesh:
                 GL.GL_STATIC_DRAW,
             )
 
-        stride = (12 if self.is_skinned else 8) * 4
+        stride = 8 * 4
 
         # position (location = 0)
         GL.glEnableVertexAttribArray(0)
@@ -146,26 +99,6 @@ class Mesh:
         GL.glVertexAttribPointer(
             2, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(6 * 4)
         )
-
-        if self.is_skinned and self.bone_ids is not None:
-            # bone IDs (location = 3) -- integer attribute
-            self.bone_vbo = GL.glGenBuffers(1)
-            GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.bone_vbo)
-            GL.glBufferData(
-                GL.GL_ARRAY_BUFFER,
-                self.bone_ids.nbytes,
-                self.bone_ids,
-                GL.GL_STATIC_DRAW,
-            )
-
-            GL.glEnableVertexAttribArray(3)
-            GL.glVertexAttribIPointer(3, 4, GL.GL_UNSIGNED_SHORT, 0, ctypes.c_void_p(0))
-
-            # bone weights (location = 4)
-            GL.glEnableVertexAttribArray(4)
-            GL.glVertexAttribPointer(
-                4, 4, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(8 * 4)
-            )
 
         GL.glBindVertexArray(0)
 

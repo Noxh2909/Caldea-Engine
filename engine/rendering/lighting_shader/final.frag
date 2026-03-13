@@ -29,48 +29,41 @@ uniform float u_opacity;
 // Shadow calculation
 // ----------------------
 
-float ShadowCalculation(vec3 fragPos)
-{
-    vec3 fragToLight = fragPos - lightPos;
-    float currentDepth = length(fragToLight);
+float ShadowCalculation(vec3 fragPos) {
+  vec3 fragToLight = fragPos - lightPos;
+  float currentDepth = length(fragToLight);
 
-    // normal-based bias (reduces acne)
-    vec3 N = normalize(Normal);
-    if(u_double_sided && !gl_FrontFacing)
-        N = -N;
-    vec3 L = normalize(fragToLight);
-    float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);
+  // normal-based bias (reduces acne)
+  vec3 N = normalize(Normal);
+  if (u_double_sided && !gl_FrontFacing)
+    N = -N;
+  vec3 L = normalize(fragToLight);
+  float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);
 
-    // simple PCF over cubemap
-    float shadow = 0.0;
-    int samples = u_pcfSamples;
-    float diskRadius = u_pcfRadius;
+  // simple PCF over cubemap
+  float shadow = 0.0;
+  int samples = u_pcfSamples;
+  float diskRadius = u_pcfRadius;
 
-    if (samples <= 0)
-        return 0.0;
+  if (samples <= 0)
+    return 0.0;
 
-    for (int i = 0; i < samples; ++i)
-    {
-        // predefined offset directions (hardcoded pattern)
-        vec3 offset = normalize(vec3(
-            sin(float(i) * 12.9898),
-            cos(float(i) * 78.233),
-            sin(float(i) * 37.719)
-        ));
+  for (int i = 0; i < samples; ++i) {
+    // predefined offset directions (hardcoded pattern)
+    vec3 offset =
+        normalize(vec3(sin(float(i) * 12.9898), cos(float(i) * 78.233),
+                       sin(float(i) * 37.719)));
 
-        float closestDepth = texture(
-            depthMap,
-            fragToLight + offset * diskRadius
-        ).r;
+    float closestDepth = texture(depthMap, fragToLight + offset * diskRadius).r;
 
-        closestDepth *= far_plane;
+    closestDepth *= far_plane;
 
-        if (currentDepth - bias > closestDepth)
-            shadow += 1.0;
-    }
+    if (currentDepth - bias > closestDepth)
+      shadow += 1.0;
+  }
 
-    shadow /= float(samples);
-    return shadow;
+  shadow /= float(samples);
+  return shadow;
 }
 
 // Main function
@@ -115,7 +108,7 @@ void main() {
   float ao = texture(ssaoTexture, screenUV).r;
   vec3 ambient = u_ambientStrength * ao * lightColor * u_lightIntensity;
   vec3 norm = normalize(Normal);
-  if(u_double_sided && !gl_FrontFacing)
+  if (u_double_sided && !gl_FrontFacing)
     norm = -norm;
   vec3 lightDir = normalize(lightPos - FragPos);
   float diff = max(dot(norm, lightDir), 0.0);
