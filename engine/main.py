@@ -13,7 +13,7 @@ from gameobjects.player.player import Player
 from gameobjects.player.camera import Camera
 from gameobjects.transform import Transform
 from gameobjects.material_lookup import Material
-from gameobjects.mesh import Mesh
+from gameobjects.mesh import Mesh, MeshRegistry
 from gameobjects.collider.aabb import AABBCollider
 from gameobjects.object import GameObject
 from gameobjects.vertec import plane_vertices
@@ -63,6 +63,22 @@ def initialize():
     debug_renderer = DebugRenderer()
     audio = AudioEngine()
     world = World(audio, "engine/world_gen.json")
+    
+    # ------------------------------------------------------------
+    # Test objects: spawn 2000 cubes at height 15
+    # ------------------------------------------------------------
+    # cube_mesh = MeshRegistry.get("cube")
+
+    # for i in range(2000):
+    #     obj = GameObject(
+    #         mesh=cube_mesh,
+    #         transform=Transform(position=(i * 2.0, 15.0, 0.0)),
+    #         material=Material(color=(0.8, 0.8, 0.8), shininess=16, specular_strength=0.3),
+    #         collider=None,
+    #         obj_name="test_cube",
+    #     )
+    #     world.objects.append(obj)
+        
     gizmo = DebugGizmo()
     debug_controller = DebugObjectController()
     debug_ui = UIManager()
@@ -81,7 +97,7 @@ def initialize():
         mesh=None,
         transform=Transform(position=(0.0, 0.05, 0.0)),
         material=None,
-        collider=AABBCollider(size=(1000.0, 1.0, 1000.0)),
+        collider=AABBCollider(size=(100.0, 1.0, 100.0)),
     )
     physics.add_static(plane_game_object)
     plane_mesh = Mesh(plane_vertices)
@@ -128,7 +144,7 @@ def initialize():
         "gizmo": gizmo,
         "debug_controller": debug_controller,
         "debug_ui": debug_ui,
-        "scene_objects": scene_objects,
+        # "scene_objects": scene_objects,
         "plane_mesh": plane_mesh,
         "ui_focus": ui_focus,
         "debug_enabled": debug_enabled,
@@ -232,12 +248,33 @@ def main_loop(engine):
         visible_objects = []
         for obj in engine["world"].objects:
 
-            # Objects without collider cannot be culled → always render them
-            if obj.collider is None:
+            # -------------------------------------------------
+            # 1. Collider based culling (preferred)
+            # -------------------------------------------------
+            if obj.collider is not None:
+                min_corner, max_corner = obj.collider.get_bounds(obj.transform)
+
+            # -------------------------------------------------
+            # 2. Mesh based fallback if no collider
+            # -------------------------------------------------
+            elif obj.mesh is not None and hasattr(obj.mesh, "vertex_positions"):
+                verts = obj.mesh.vertex_positions
+
+                vmin = verts.min(axis=0)
+                vmax = verts.max(axis=0)
+
+                scale = np.array(obj.transform.scale)
+                pos = np.array(obj.transform.position)
+
+                min_corner = vmin * scale + pos
+                max_corner = vmax * scale + pos
+
+            # -------------------------------------------------
+            # 3. No collider and no mesh → cannot cull
+            # -------------------------------------------------
+            else:
                 visible_objects.append(obj)
                 continue
-
-            min_corner, max_corner = obj.collider.get_bounds(obj.transform)
 
             if aabb_in_frustum(planes, min_corner, max_corner):
                 visible_objects.append(obj)
