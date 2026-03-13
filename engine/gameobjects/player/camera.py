@@ -73,3 +73,51 @@ class Camera:
         proj[3, 2] = -1.0
 
         return proj
+
+    def get_view_projection_matrix(self, aspect: float) -> np.ndarray:
+        """
+        Returns the combined ViewProjection matrix used for frustum culling.
+        """
+        view = self.get_view_matrix()
+        proj = self.get_projection_matrix(aspect)
+        return proj @ view
+
+
+    def get_frustum_planes(self, aspect: float):
+        """
+        Extracts the 6 frustum planes from the ViewProjection matrix.
+
+        Returns:
+            list of tuples (normal, distance)
+        """
+        vp = self.get_view_projection_matrix(aspect)
+
+        planes = []
+
+        # Left
+        planes.append(vp[3] + vp[0])
+        # Right
+        planes.append(vp[3] - vp[0])
+        # Bottom
+        planes.append(vp[3] + vp[1])
+        # Top
+        planes.append(vp[3] - vp[1])
+        # Near
+        planes.append(vp[3] + vp[2])
+        # Far
+        planes.append(vp[3] - vp[2])
+
+        normalized_planes = []
+
+        for p in planes:
+            normal = p[:3]
+            distance = p[3]
+            length = np.linalg.norm(normal)
+
+            if length != 0:
+                normal = normal / length
+                distance = distance / length
+
+            normalized_planes.append((normal, distance))
+
+        return normalized_planes
