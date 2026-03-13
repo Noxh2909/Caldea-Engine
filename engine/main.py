@@ -16,10 +16,7 @@ from gameobjects.material_lookup import Material
 from gameobjects.mesh import Mesh
 from gameobjects.collider.aabb import AABBCollider
 from gameobjects.object import GameObject
-from gameobjects.player.mannequin import Mannequin
-from gameobjects.player.animator import Animator
 from gameobjects.vertec import plane_vertices
-from gameobjects.loader.glb_loader import GLBLoader
 
 from audio.audio_enigne import AudioEngine
 from components.light_component import LightComponent

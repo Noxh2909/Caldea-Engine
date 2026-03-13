@@ -1,7 +1,6 @@
 import math
 import numpy as np
 from typing import Optional
-from gameobjects.player.animator import Animator
 
 
 class Bone:
@@ -87,7 +86,7 @@ class Mannequin:
         self.yaw_follow_strength = 0.25
 
         # Animator (optional)
-        self.animator: Optional[Animator] = None
+        #self.animator: Optional[Animator] = None
 
     def matrix(self):
         pos = self.player.position.copy().astype(np.float32)
