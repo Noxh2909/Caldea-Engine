@@ -148,7 +148,7 @@
         "shininess": 16.0, 
         "specular_strength": 0.3
       }
-    }, 
+    },
     {
       "obj_name": "Plattenspieler", 
       "gravity": true, 
@@ -171,7 +171,7 @@
       }
     }, 
     {
-      "obj_name": "Nachttisch", 
+      "obj_name": "0101", 
       "gravity": true, 
       "glb_path": "nachttisch.glb", 
       "position": [-1.0, 0.9, 7.1], 
