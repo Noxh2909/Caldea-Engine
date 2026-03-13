@@ -94,30 +94,7 @@
       }, 
       "position": [-1, 0, 3], 
       "scale": [10, 0.5, 10]
-    }, 
-    {
-      "obj_name": "curtain", 
-      "mesh": "cloth", 
-      "material": {
-        "name": "curtain", 
-        "opacity": 1.0, 
-        "double_sided": true, 
-        "texture_scale_mode": "default", 
-        "texture_scale_value": 1.0, 
-        "shininess": 8.0, 
-        "specular_strength": 0.1
-      }, 
-      "position": [-2.8, 4.4, 0.0], 
-      "scale": [1.0, 1.0, 1.0], 
-      "cloth": {
-        "width": 9.0, 
-        "height": 9.0, 
-        "segments_x": 15, 
-        "segments_y": 15, 
-        "gravity": [0, -9.81, 0], 
-        "wind_rate": 2.0
-      }
-    }, 
+    },
     {
       "obj_name": "Lamp", 
       "gravity": "false", 

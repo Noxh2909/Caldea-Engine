@@ -238,13 +238,6 @@ def main_loop(engine):
         aspect = engine["WIDTH"] / engine["HEIGHT"]
         planes = engine["camera"].get_frustum_planes(aspect)
 
-        def aabb_in_frustum(planes, min_corner, max_corner):
-            for normal, dist in planes:
-                p = np.where(normal >= 0, max_corner, min_corner)
-                if np.dot(normal, p) + dist < 0:
-                    return False
-            return True
-
         visible_objects = []
         for obj in engine["world"].objects:
 
@@ -276,13 +269,13 @@ def main_loop(engine):
                 visible_objects.append(obj)
                 continue
 
-            if aabb_in_frustum(planes, min_corner, max_corner):
+            if obj.collider.aabb_in_frustum(planes, min_corner, max_corner):
                 visible_objects.append(obj)
 
         # ------------------------------------------------------------
         # Render Pipeline
         # ------------------------------------------------------------
-        engine["renderer"].render_shadow_pass(visible_objects, avatars=[])
+        engine["renderer"].render_shadow_pass(engine["world"].objects, avatars=[])
         engine["renderer"].render_ssao_pass(engine["camera"], visible_objects)
 
         engine["renderer"].render_final_pass(
