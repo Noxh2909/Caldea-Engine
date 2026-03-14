@@ -15,10 +15,13 @@ class AABBCollider:
         """
         Automatically compute collider size from mesh vertices.
 
-        vertices: numpy array shape (N,3)
+        vertices: numpy array shape (N, 3) or (N, >3) [pos, ...]
         """
-        vmin = vertices.min(axis=0)
-        vmax = vertices.max(axis=0)
+        # Vertices may contain [pos, normal, uv] → only use position (first 3 columns)
+        positions = vertices[:, :3]
+
+        vmin = positions.min(axis=0)
+        vmax = positions.max(axis=0)
 
         # collider size
         self.size = (vmax - vmin).astype(np.float32)

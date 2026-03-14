@@ -87,10 +87,17 @@ class PhysicsWorld:
                 if overlap:
                     ground_y = max_v[1]
 
-                    # compute collider bottom
+                    # current collider bottom
                     bottom_now = obj_min[1]
-                    height = obj_max[1] - obj_min[1]
-                    bottom_prev = prev_pos[1] - height * 0.5
+
+                    # compute previous collider bounds using previous position
+                    prev_transform = obj.transform
+                    prev_position_backup = prev_transform.position.copy()
+                    prev_transform.position = prev_pos
+                    prev_min, prev_max = obj.collider.get_bounds(prev_transform)
+                    prev_transform.position = prev_position_backup
+
+                    bottom_prev = prev_min[1]
 
                     was_above = bottom_prev >= ground_y
                     is_now_below = bottom_now <= ground_y

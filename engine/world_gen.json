@@ -59,6 +59,7 @@
     {
       "obj_name": "Picture", 
       "mesh": "cube", 
+      "roll": 180.0,
       "material": {
         "name": "monalisa", 
         "texture_scale_mode": "default", 
@@ -131,7 +132,7 @@
       "obj_name": "Plattenspieler", 
       "gravity": true, 
       "glb_path": "plattenspieler.glb", 
-      "position": [-1.0, 2.9, 7.2], 
+      "position": [-1.0, 5.0, 7.2], 
       "scale": [0.5, 0.5, 0.5], 
       "yaw": -90.0, 
       "material": {
@@ -152,20 +153,7 @@
       "obj_name": "Nachttisch", 
       "gravity": true, 
       "glb_path": "nachttisch.glb", 
-      "position": [-1.0, 0.9, 7.1], 
-      "scale": [1.0, 1.0, 1.0], 
-      "yaw": 90.0, 
-      "material": {
-        "name": "white", 
-        "shininess": 16.0, 
-        "specular_strength": 0.3
-      }
-    },
-    {
-      "obj_name": "Lioncrest", 
-      "gravity": false, 
-      "glb_path": "lioncrest.glb", 
-      "position": [-1.0, 0.9, 2.1], 
+      "position": [-1.0, 2.0, 7.1], 
       "scale": [1.0, 1.0, 1.0], 
       "yaw": 90.0, 
       "material": {

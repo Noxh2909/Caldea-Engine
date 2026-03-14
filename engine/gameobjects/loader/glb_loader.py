@@ -156,6 +156,11 @@ class GLBLoader:
         model_height = max_bounds[1] - min_bounds[1]
         foot_offset = -min_bounds[1]  # distance from pivot to feet
 
+        # Normalize mesh so that the lowest vertex sits at y = 0 (pivot at feet)
+        # This avoids physics hover offsets caused by GLB pivots above the model base
+        positions = positions.copy()
+        positions[:, 1] += foot_offset
+
         normals = (
             self._read_accessor(prim.attributes.NORMAL)
             if prim.attributes.NORMAL is not None

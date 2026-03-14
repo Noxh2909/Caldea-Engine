@@ -43,6 +43,7 @@ class World:
             position=data.get("position"),
             scale=data.get("scale"),
             yaw=data.get("yaw", 0.0),
+            roll=data.get("roll", 0.0)
         )
 
         # ---------- mesh ----------
