@@ -4,23 +4,19 @@ from OpenGL import GL
 
 class Texture:
 
+    # -------------------------------------------------
+    # Internal uploader (shared by all methods)
+    # -------------------------------------------------
     @staticmethod
-    def load_texture(path: str) -> int:
-        """
-        Load a PNG/JPG texture from disk and upload it to OpenGL.
-        Returns the OpenGL texture ID.
-        """
-
-        # Load image via pygame
-        surface = pygame.image.load(path).convert_alpha()
+    def _upload_surface(surface) -> int:
         width, height = surface.get_size()
 
-        # Convert to raw bytes (RGBA)
-        image_data = pygame.image.tostring(surface, "RGBA", True)
+        image_data = pygame.image.tostring(surface, "RGBA", False)
 
-        # Create OpenGL texture
         tex_id = GL.glGenTextures(1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, tex_id)
+
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
 
         GL.glTexImage2D(
             GL.GL_TEXTURE_2D,
@@ -34,14 +30,38 @@ class Texture:
             image_data,
         )
 
-        # Texture filtering
         GL.glTexParameteri(
             GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR
         )
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
 
-        # Generate mipmaps
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
+
         GL.glGenerateMipmap(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         return tex_id
+
+    # -------------------------------------------------
+    # Load from file (PNG/JPG)
+    # -------------------------------------------------
+    @staticmethod
+    def load_texture(path: str) -> int:
+        surface = pygame.image.load(path).convert_alpha()
+        return Texture._upload_surface(surface)
+
+    # -------------------------------------------------
+    # Load from pygame surface (GLB usage)
+    # -------------------------------------------------
+    @staticmethod
+    def load_texture_from_surface(surface) -> int:
+        return Texture._upload_surface(surface)
+
+    # -------------------------------------------------
+    # Load directly from raw bytes (optional)
+    # -------------------------------------------------
+    @staticmethod
+    def load_texture_from_bytes(image_bytes, size) -> int:
+        surface = pygame.image.frombuffer(image_bytes, size, "RGBA")
+        return Texture._upload_surface(surface)
