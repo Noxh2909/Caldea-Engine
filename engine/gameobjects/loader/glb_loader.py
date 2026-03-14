@@ -4,6 +4,7 @@ from pygltflib import GLTF2
 import numpy as np
 import struct
 from typing import Optional
+from OpenGL import GL
 
 
 class GLBLoader:
@@ -100,7 +101,7 @@ class GLBLoader:
     # -------------------------------------------------
     # Texture helpers
     # -------------------------------------------------
-    def _load_basecolor_texture(self, prim) -> Optional[Image.Image]:
+    def _load_basecolor_texture(self, prim) -> Optional[int]:
         if prim.material is None:
             return None
 
@@ -123,7 +124,35 @@ class GLBLoader:
         length = view.byteLength
 
         img_bytes = self._binary[offset : offset + length]
-        return Image.open(io.BytesIO(img_bytes)).convert("RGBA")
+        image = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
+        image_data = np.array(image, dtype=np.uint8)
+
+        tex_id = GL.glGenTextures(1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, tex_id)
+
+        GL.glTexImage2D(
+            GL.GL_TEXTURE_2D,
+            0,
+            GL.GL_RGBA,
+            image.width,
+            image.height,
+            0,
+            GL.GL_RGBA,
+            GL.GL_UNSIGNED_BYTE,
+            image_data,
+        )
+
+        GL.glGenerateMipmap(GL.GL_TEXTURE_2D)
+
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
+
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        return tex_id
 
     # -------------------------------------------------
     # Public API

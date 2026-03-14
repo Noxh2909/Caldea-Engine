@@ -160,6 +160,19 @@
         "shininess": 16.0, 
         "specular_strength": 0.3
       }
+    },
+    {
+      "obj_name": "Lioncrest", 
+      "gravity": false, 
+      "glb_path": "lioncrest.glb", 
+      "position": [-1.0, 0.9, 2.1], 
+      "scale": [1.0, 1.0, 1.0], 
+      "yaw": 90.0, 
+      "material": {
+        "name": "white", 
+        "shininess": 16.0, 
+        "specular_strength": 0.3
+      }
     }
   ]
 }

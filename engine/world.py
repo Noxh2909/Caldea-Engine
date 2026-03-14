@@ -47,6 +47,7 @@ class World:
 
         # ---------- mesh ----------
         mesh_name = data.get("mesh")
+        glb_texture = None
         glb_path = data.get("glb_path")
 
         if glb_path:
@@ -57,6 +58,9 @@ class World:
             loader = GLBLoader(glb_path)
             glb_data = loader.load_first_mesh()
             mesh = Mesh(glb_data["vertices"], glb_data["indices"])
+
+            # store texture from glb if present
+            glb_texture = glb_data.get("albedo")
         elif mesh_name in self.material_blacklist:
             mesh = None
         else:
@@ -64,12 +68,23 @@ class World:
 
         # ---------- material ----------
         material = None
+
+        # if the glb provided a texture, create a default material from it
+        if glb_texture is not None:
+            material = Material(
+                texture=glb_texture,
+                opacity=1.0,
+                double_sided=False,
+                shininess=32,
+                specular_strength=0.5,
+            )
+
         material_data = data.get("material")
 
-        if isinstance(material_data, str):
+        if material is None and isinstance(material_data, str):
             material = MaterialRegistry.get(material_data)
 
-        elif isinstance(material_data, dict):
+        elif material is None and isinstance(material_data, dict):
             base_name = material_data.get("name")
             if base_name:
                 base_material = MaterialRegistry.get(base_name)
