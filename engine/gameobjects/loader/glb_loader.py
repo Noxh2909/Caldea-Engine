@@ -4,7 +4,8 @@ from pygltflib import GLTF2
 import numpy as np
 import struct
 from typing import Optional
-from OpenGL import GL
+import pygame
+from gameobjects.texture import Texture
 
 
 class GLBLoader:
@@ -124,35 +125,14 @@ class GLBLoader:
         length = view.byteLength
 
         img_bytes = self._binary[offset : offset + length]
+        # Decode image with PIL
         image = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
-        image_data = np.array(image, dtype=np.uint8)
 
-        tex_id = GL.glGenTextures(1)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, tex_id)
+        # Convert PIL image → pygame surface
+        surface = pygame.image.fromstring(image.tobytes(), image.size, "RGBA")
 
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D,
-            0,
-            GL.GL_RGBA,
-            image.width,
-            image.height,
-            0,
-            GL.GL_RGBA,
-            GL.GL_UNSIGNED_BYTE,
-            image_data,
-        )
-
-        GL.glGenerateMipmap(GL.GL_TEXTURE_2D)
-
-        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-
-        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
-
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
-        return tex_id
+        # Upload using the engine's central texture pipeline
+        return Texture.load_texture_from_surface(surface)
 
     # -------------------------------------------------
     # Public API
