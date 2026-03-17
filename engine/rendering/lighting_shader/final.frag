@@ -117,7 +117,7 @@ void main() {
 
   // --- Fake Global Illumination (angle-dependent bounce) ---
   float NdotL = diff;
-  vec3 bounce = lightColor * baseColor * u_lightIntensity * 0.1 * NdotL;
+  vec3 bounce = lightColor * baseColor * u_lightIntensity * 0.2 * NdotL;
 
   vec3 viewDir = normalize(viewPos - FragPos);
   vec3 reflectDir = reflect(-lightDir, norm);

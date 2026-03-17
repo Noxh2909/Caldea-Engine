@@ -8,8 +8,8 @@
         "name": "whiteplain", 
         "texture_scale_mode": "default", 
         "texture_scale_value": 0.1, 
-        "shininess": 16.0, 
-        "specular_strength": 0.5
+        "shininess": 8.0, 
+        "specular_strength": 0.1
       }, 
       "position": [4, 0, 3], 
       "scale": [10, 10, 0.5]
@@ -22,8 +22,8 @@
         "name": "whiteplain", 
         "texture_scale_mode": "default", 
         "texture_scale_value": 0.1, 
-        "shininess": 16.0, 
-        "specular_strength": 0.5
+        "shininess": 8.0, 
+        "specular_strength": 0.1
       }, 
       "position": [-6, 0, 3], 
       "scale": [10, 10, 0.5]
@@ -36,8 +36,8 @@
         "name": "whiteplain", 
         "texture_scale_mode": "default", 
         "texture_scale_value": 0.1, 
-        "shininess": 16.0, 
-        "specular_strength": 0.5
+        "shininess": 8.0, 
+        "specular_strength": 0.1
       }, 
       "position": [-1, 0, 8], 
       "scale": [10, 10, 0.5]
@@ -50,8 +50,8 @@
         "name": "whiteplain", 
         "texture_scale_mode": "default", 
         "texture_scale_value": 0.1, 
-        "shininess": 16.0, 
-        "specular_strength": 0.5
+        "shininess": 8.0, 
+        "specular_strength": 0.1
       }, 
       "position": [-1, 0, -2], 
       "scale": [10, 10, 0.5]
@@ -76,8 +76,8 @@
         "name": "whiteplain", 
         "texture_scale_mode": "default", 
         "texture_scale_value": 1.0, 
-        "shininess": 64.0, 
-        "specular_strength": 0.9
+        "shininess": 8.0, 
+        "specular_strength": 0.1
       }, 
       "position": [-1, 9.5, 3], 
       "scale": [10, 0.5, 10]
@@ -135,7 +135,7 @@
       "scale": [4.0, 4.0, 4.0], 
       "yaw": 180.0, 
       "material": {
-        "shininess": 8.0, 
+        "shininess": 1.0, 
         "specular_strength": 0.1
       }, 
       "audio": {
