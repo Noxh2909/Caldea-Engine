@@ -100,36 +100,3 @@ def generate_sphere(radius=0.0, stacks=0, slices=0):
     return np.array(verts, dtype=np.float32)
 
 sphere_vertices = generate_sphere(radius=0.5, stacks=16, slices=32)
-
-def generate_cylinder(radius=0.0, height=0.0, segments=0):
-    verts = []
-
-    for i in range(segments):
-        a0 = 2 * np.pi * i / segments
-        a1 = 2 * np.pi * (i + 1) / segments
-
-        x0, z0 = np.cos(a0) * radius, np.sin(a0) * radius
-        x1, z1 = np.cos(a1) * radius, np.sin(a1) * radius
-
-        # normals (side)
-        n0 = np.array([x0, 0.0, z0])
-        n1 = np.array([x1, 0.0, z1])
-        n0 /= np.linalg.norm(n0)
-        n1 /= np.linalg.norm(n1)
-
-        # bottom y=0, top y=height
-        for y0, y1 in [(0.0, height)]:
-            # triangle 1
-            verts.extend([x0, y0, z0, *n0, 0, 0])
-            verts.extend([x1, y0, z1, *n1, 1, 0])
-            verts.extend([x1, y1, z1, *n1, 1, 1])
-
-            # triangle 2
-            verts.extend([x0, y0, z0, *n0, 0, 0])
-            verts.extend([x1, y1, z1, *n1, 1, 1])
-            verts.extend([x0, y1, z0, *n0, 0, 1])
-
-    return np.array(verts, dtype=np.float32)
-
-cylinder_vertices = generate_cylinder(radius=1.0, height=5.0, segments=32)
-# fmt: on

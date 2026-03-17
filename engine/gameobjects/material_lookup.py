@@ -43,6 +43,9 @@ MATERIAL_TABLE = {
     "curtain": lambda: Material(
         texture=Texture.load_texture(os.path.join(texture_dir, "curtain.png"))
     ),
+    "whiteplain": lambda: Material(
+        texture=Texture.load_texture(os.path.join(texture_dir, "whiteplain.png"))
+    ),
     "sun": lambda: Material(color=(255, 255, 255)),
     "white": lambda: Material(color=(1.0, 1.0, 1.0)),
 }
