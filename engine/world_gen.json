@@ -123,8 +123,8 @@
       "yaw": 45.0, 
       "pitch": -90.0,
       "material": {
-        "shininess": 16.0, 
-        "specular_strength": 0.3
+        "shininess": 8.0, 
+        "specular_strength": 0.1
       }
     },
     {
@@ -135,8 +135,8 @@
       "scale": [4.0, 4.0, 4.0], 
       "yaw": 180.0, 
       "material": {
-        "shininess": 16.0, 
-        "specular_strength": 0.3
+        "shininess": 8.0, 
+        "specular_strength": 0.1
       }, 
       "audio": {
         "path": "shadow_mono.wav", 

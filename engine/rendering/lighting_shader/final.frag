@@ -106,13 +106,19 @@ void main() {
 
   vec2 screenUV = gl_FragCoord.xy / vec2(textureSize(ssaoTexture, 0));
   float ao = texture(ssaoTexture, screenUV).r;
-  vec3 ambient = u_ambientStrength * ao * lightColor * u_lightIntensity;
+  // Ambient should be albedo-based (not light-based)
+  vec3 ambient = u_ambientStrength * ao * baseColor;
   vec3 norm = normalize(Normal);
   if (u_double_sided && !gl_FrontFacing)
     norm = -norm;
   vec3 lightDir = normalize(lightPos - FragPos);
   float diff = max(dot(norm, lightDir), 0.0);
   vec3 diffuse = diff * lightColor * baseColor * u_lightIntensity;
+
+  // --- Fake Global Illumination (angle-dependent bounce) ---
+  float NdotL = diff;
+  vec3 bounce = lightColor * baseColor * u_lightIntensity * 0.1 * NdotL;
+
   vec3 viewDir = normalize(viewPos - FragPos);
   vec3 reflectDir = reflect(-lightDir, norm);
   float spec = pow(max(dot(viewDir, reflectDir), 0.0), u_shininess);
@@ -125,11 +131,14 @@ void main() {
       1.0 / (1.0 + 0.09 * distance +
              0.032 * distance * distance); // Quadratic attenuation
 
-  vec3 lighting = ambient + attenuation * (1.0 - shadow) * (diffuse + specular);
+  vec3 lighting = ambient
+               + attenuation * (1.0 - shadow) * (diffuse + specular)
+               + attenuation * bounce;
 
   // ----------------------
   // Final output
   // ----------------------
-  vec3 finalColor = lighting * baseColor;
+  // baseColor already applied in diffuse/bounce, avoid double multiplication
+  vec3 finalColor = lighting;
   FragColor = vec4(finalColor, u_opacity);
 }
