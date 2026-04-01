@@ -2,7 +2,7 @@ from gameobjects.texture import Texture
 import os
 
 ENGINE_DIR = os.path.dirname(os.path.dirname(__file__))  # .../pygame/engine
-PROJECT_ROOT = os.path.dirname(ENGINE_DIR)  # .../pygame
+PROJECT_ROOT = os.path.dirname(ENGINE_DIR)               # .../pygame
 
 texture_dir = os.path.join(PROJECT_ROOT, "assets", "textures")
 

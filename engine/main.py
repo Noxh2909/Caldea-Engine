@@ -46,10 +46,10 @@ def initialize():
 
     pygame.mouse.set_visible(False)
     pygame.event.set_grab(True)
-    pygame.mouse.get_rel()
+    pygame.mouse.get_rel()  
 
     version = GL.glGetString(GL.GL_VERSION)
-    if version:
+    if version: 
         print("OpenGL:", version.decode())
 
     # Core Engine Objects
@@ -310,13 +310,27 @@ def main_loop(engine):
             if not current_name:
                 current_name = type(current_obj).__name__
 
+        yaw = 0.0
+        pitch = 0.0
+        roll = 0.0
+
+        if target_transform is not None:
+            # Use rotation instead of position
+            pitch = target_transform.pitch
+            yaw = target_transform.yaw
+            roll = target_transform.roll
+
         engine["debug_renderer"].render_debug_hud(
             engine["clock"],
             engine["player"],
-            {"target": current_name},
+            {
+                "target": current_name,
+                "yaw": yaw,
+                "pitch": pitch,
+                "roll": roll,
+            },
             object_position,
             object_scale,
-            extra_lines=None,
         )
 
         # ------------------------------------------------------------

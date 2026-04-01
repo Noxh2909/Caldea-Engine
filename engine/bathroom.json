@@ -1,0 +1,36 @@
+{
+  "objects": [
+    {
+      "obj_name": "Floor", 
+      "glb_path": "test.glb",
+      "pitch": 0.0,
+      "yaw": 0.0,
+      "roll": 180.0,
+      "material": {
+        "name": "marble",
+        "shininess": 256.0, 
+        "specular_strength": 0.9
+      }, 
+      "position": [-1, 0, 3], 
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "obj_name": "Lamp", 
+      "gravity": false, 
+      "mesh": "sphere", 
+      "material": {
+        "name": "sun", 
+        "shininess": 0.1, 
+        "specular_strength": 0.1
+      }, 
+      "position": [-1, 6.0, 3.0], 
+      "scale": [0.2, 0.2, 0.2], 
+      "light": {
+        "ambient_strength": 0.04, 
+        "direction": [0.0, 1.0, 0.0], 
+        "color": [0.85, 0.65, 0.35], 
+        "intensity": 1.2
+      }
+    }
+  ]
+}

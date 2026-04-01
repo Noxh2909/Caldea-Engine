@@ -1,6 +1,7 @@
 from OpenGL import GL
 import ctypes
 import pygame
+import math
 import numpy as np
 
 from rendering.utils.renderer_utils import RenderUtils
@@ -131,7 +132,7 @@ class DebugRenderer:
     # ============================================================
 
     def render_debug_hud(
-        self, clock, player, obj, obj_pos, obj_scale, extra_lines=None
+        self, clock, player, obj, obj_pos, obj_scale, extra_lines=None, tranfrom =None
     ) -> None:
         """
         Render 2D debug overlay.
@@ -164,11 +165,16 @@ class DebugRenderer:
 
         # Only show extended debug info when debug mode is enabled
         if self.debug_enabled:
+            yaw = obj.get("yaw", 0.0)
+            pitch = obj.get("pitch", 0.0)
+            roll = obj.get("roll", 0.0)
+
             lines.extend([
                 f"Player Pos: {player.position[0]:.2f}, {player.position[1]:.2f}, {player.position[2]:.2f}",
                 f"Controlled object: {obj['target']}",
                 f"Object Pos: {obj_pos[0]:.2f}, {obj_pos[1]:.2f}, {obj_pos[2]:.2f}",
                 f"Object Scale: {obj_scale[0]:.2f}, {obj_scale[1]:.2f}, {obj_scale[2]:.2f}",
+                f"Yaw: {math.degrees(yaw):.1f}°, Pitch: {math.degrees(pitch):.1f}°, Roll: {math.degrees(roll):.1f}°",
             ])
 
         if extra_lines:
