@@ -3,6 +3,7 @@ import random
 import numpy as np
 from OpenGL import GL
 
+from gameobjects.object import GameObject
 from gameobjects.player.player import look_at
 from rendering.utils.renderer_utils import RenderUtils
 
@@ -43,23 +44,6 @@ FINAL_FRAGMENT_SHADER_SRC = utils.load_shader("engine/rendering/lighting_shader/
 # =========================
 # Renderer Class
 # =========================
-
-
-class RenderObject:
-    def __init__(self, mesh, transform, material):
-        """
-        Lightweight container used by the lighting pipeline.
-
-        Encapsulates:
-        - Mesh geometry
-        - World transform
-        - Material definition
-
-        This object is rendering-only and contains no gameplay logic.
-        """
-        self.mesh = mesh
-        self.transform = transform
-        self.material = material
 
 
 class LightRenderer:
@@ -905,6 +889,9 @@ class LightRenderer:
                 avatar.mesh.draw()
 
         for obj in scene_objects:
+            if obj.mesh is None or obj.material is None:
+                continue
+
             GL.glUniformMatrix4fv(
                 self.depth_model_loc,
                 1,
@@ -983,7 +970,7 @@ class LightRenderer:
     # the result to reduce noise.
     # -----------------------
 
-    def render_ssao_pass(self, camera, scene_objects: list[RenderObject]) -> None:
+    def render_ssao_pass(self, camera, scene_objects: list[GameObject]) -> None:
         """
         Screen Space Ambient Occlusion pass.
 
@@ -1009,6 +996,9 @@ class LightRenderer:
         GL.glUniformMatrix4fv(self.g_proj_loc, 1, GL.GL_TRUE, proj)
 
         for obj in scene_objects:
+            if obj.mesh is None or obj.material is None:
+                continue
+
             GL.glUniformMatrix4fv(
                 self.g_model_loc, 1, GL.GL_TRUE, obj.transform.matrix()
             )
@@ -1268,7 +1258,7 @@ class LightRenderer:
         self,
         player,
         camera,
-        scene_objects: list[RenderObject],
+        scene_objects: list[GameObject],
         screen_width,
         screen_height,
         debug_renderer=None,
@@ -1360,6 +1350,9 @@ class LightRenderer:
         transparent = []
 
         for obj in scene_objects:
+            if obj.mesh is None or obj.material is None:
+                continue
+
             if getattr(obj.material, "opacity", 1.0) < 1.0:
                 transparent.append(obj)
             else:

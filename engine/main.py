@@ -2,7 +2,7 @@ import pygame
 import numpy as np
 from OpenGL import GL
 
-from rendering.lighting_renderer import LightRenderer, RenderObject
+from rendering.lighting_renderer import LightRenderer
 from rendering.debug_renderer import DebugRenderer
 
 from world import World
@@ -111,16 +111,10 @@ def initialize():
             physics.add_dynamic(obj)
 
     # Scene Object List (Render Layer)
-    scene_objects: list[RenderObject] = []
+    scene_objects: list[GameObject] = []
     for obj in world.objects:
-        if obj.mesh is not None:
-            scene_objects.append(
-                RenderObject(
-                    mesh=obj.mesh,
-                    transform=obj.transform,
-                    material=obj.material,
-                )
-            )
+        if obj.mesh is not None and obj.material is not None:
+            scene_objects.append(obj)
 
     # Debug UI Object Name List
     world_object_names = []
