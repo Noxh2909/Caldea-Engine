@@ -19,9 +19,7 @@ class AudioComponent:
 
         full_path = os.path.join("engine/audio/audiosamples", self.config.get("path"))
 
-        self.source = AudioSource(
-            path=full_path, position=self.game_object.transform.position
-        )
+        self.source = AudioSource(path=full_path, position=self.game_object.transform.position)
 
         # --- Configuration ---
         loop = self.config.get("loop")

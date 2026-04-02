@@ -2,7 +2,7 @@ from gameobjects.texture import Texture
 import os
 
 ENGINE_DIR = os.path.dirname(os.path.dirname(__file__))  # .../pygame/engine
-PROJECT_ROOT = os.path.dirname(ENGINE_DIR)               # .../pygame
+PROJECT_ROOT = os.path.dirname(ENGINE_DIR)  # .../pygame
 
 texture_dir = os.path.join(PROJECT_ROOT, "assets", "textures")
 
@@ -10,59 +10,25 @@ if not os.path.isdir(texture_dir):
     raise RuntimeError(f"Texture directory not found: {texture_dir}")
 
 MATERIAL_TABLE = {
-    "wood": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "wood_wall.jpg"))
-    ),
-    "marble": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "marble_floor.jpg"))
-    ),
-    "yasu": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "yasu.jpeg"))
-    ),
-    "sound": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "sound.png"))
-    ),
-    "jukebox": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "jukebox.png"))
-    ),
-    "laminate": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "laminate.png"))
-    ),
-    "wallpaper": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "wallpaper.png"))
-    ),
-    "stone": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "stone.png"))
-    ),
-    "monalisa": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "monalisa.png"))
-    ),
-    "wavewall": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "wavewall.png"))
-    ),
-    "curtain": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "curtain.png"))
-    ),
-    "whiteplain": lambda: Material(
-        texture=Texture.load_texture(os.path.join(texture_dir, "whiteplain.png"))
-    ),
+    "wood": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "wood_wall.jpg"))),
+    "marble": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "marble_floor.jpg"))),
+    "yasu": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "yasu.jpeg"))),
+    "sound": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "sound.png"))),
+    "jukebox": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "jukebox.png"))),
+    "laminate": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "laminate.png"))),
+    "wallpaper": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "wallpaper.png"))),
+    "stone": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "stone.png"))),
+    "monalisa": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "monalisa.png"))),
+    "wavewall": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "wavewall.png"))),
+    "curtain": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "curtain.png"))),
+    "whiteplain": lambda: Material(texture=Texture.load_texture(os.path.join(texture_dir, "whiteplain.png"))),
     "sun": lambda: Material(color=(255, 255, 255)),
     "white": lambda: Material(color=(1.0, 1.0, 1.0)),
 }
 
 
 class Material:
-    def __init__(
-        self,
-        opacity=1.0,
-        double_sided=False,
-        color=(1.0, 1.0, 1.0),
-        texture=None,
-        texture_scale_mode=None,
-        texture_scale_value=None,
-        shininess=32,
-        specular_strength=0.5,
-    ):
+    def __init__(self, opacity=1.0, double_sided=False, color=(1.0, 1.0, 1.0), texture=None, texture_scale_mode=None, texture_scale_value=None, shininess=32, specular_strength=0.5):
         """
         color         : fallback color (vec3)
         texture       : OpenGL texture id or None

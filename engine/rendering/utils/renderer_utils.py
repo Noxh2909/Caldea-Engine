@@ -1,6 +1,4 @@
 from OpenGL import GL
-import numpy as np
-import math
 import json
 from typing import Optional
 
@@ -103,9 +101,7 @@ class RenderUtils:
 
         return shader
 
-    def link_program(
-        self, vertex_src: str, fragment_src: str, geometry_src: Optional[str] = None
-    ) -> int:
+    def link_program(self, vertex_src: str, fragment_src: str, geometry_src: Optional[str] = None) -> int:
         """
         Link OpenGL shader program.
 
@@ -145,3 +141,38 @@ class RenderUtils:
             GL.glDeleteShader(gs)
 
         return program
+
+    def require_uniform(self, program: int, name: str) -> int:
+        """Return a required uniform location for an OpenGL program.
+
+        Args:
+            program: Linked OpenGL program id.
+            name: Uniform name inside the shader.
+
+        Returns:
+            The resolved uniform location.
+
+        Raises:
+            RuntimeError: If the uniform cannot be resolved.
+        """
+        location = GL.glGetUniformLocation(program, name)
+        if location == -1:
+            raise RuntimeError(f"Uniform '{name}' nicht im Shader gefunden")
+        return location
+
+    def require_uniform_array(self, program: int, base_name: str, count: int) -> list[int]:
+        """Return uniform locations for a shader uniform array.
+
+        Args:
+            program: Linked OpenGL program id.
+            base_name: Base array name, for example ``shadowMatrices``.
+            count: Number of array elements to resolve.
+
+        Returns:
+            A list of uniform locations in array order.
+        """
+        locations = []
+        for i in range(count):
+            name = f"{base_name}[{i}]"
+            locations.append(self.require_uniform(program, name))
+        return locations

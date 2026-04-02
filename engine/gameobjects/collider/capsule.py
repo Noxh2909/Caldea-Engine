@@ -39,10 +39,7 @@ class CapsuleCollider:
         Returns the centers of the bottom and top spheres.
         """
         bottom = position + np.array([0.0, self.radius, 0.0], dtype=np.float32)
-        top = position + np.array(
-            [0.0, self.radius + self.cylinder_height, 0.0],
-            dtype=np.float32,
-        )
+        top = position + np.array([0.0, self.radius + self.cylinder_height, 0.0], dtype=np.float32)
         return bottom, top
 
     def get_aabb(self, position: np.ndarray):
@@ -68,11 +65,7 @@ class CapsuleCollider:
         bottom, top = self.get_endpoints(position)
 
         # clamp aabb center to capsule segment
-        closest = self._closest_point_on_segment(
-            bottom,
-            top,
-            np.maximum(aabb_min, np.minimum((aabb_min + aabb_max) * 0.5, aabb_max)),
-        )
+        closest = self._closest_point_on_segment(bottom, top, np.maximum(aabb_min, np.minimum((aabb_min + aabb_max) * 0.5, aabb_max)))
 
         # distance from closest point to AABB
         closest_aabb = np.maximum(aabb_min, np.minimum(closest, aabb_max))

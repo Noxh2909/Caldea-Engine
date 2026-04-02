@@ -24,13 +24,7 @@ class GLBLoader:
     # Accessor helpers
     # -------------------------------------------------
     def _component_count(self, accessor_type: str) -> int:
-        return {
-            "SCALAR": 1,
-            "VEC2": 2,
-            "VEC3": 3,
-            "VEC4": 4,
-            "MAT4": 16,
-        }[accessor_type]
+        return {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT4": 16}[accessor_type]
 
     def _component_format(self, component_type: int):
         if component_type == 5126:  # FLOAT
@@ -161,17 +155,9 @@ class GLBLoader:
         positions = positions.copy()
         positions[:, 1] += foot_offset
 
-        normals = (
-            self._read_accessor(prim.attributes.NORMAL)
-            if prim.attributes.NORMAL is not None
-            else np.zeros_like(positions)
-        )
+        normals = self._read_accessor(prim.attributes.NORMAL) if prim.attributes.NORMAL is not None else np.zeros_like(positions)
 
-        uvs = (
-            self._read_accessor(prim.attributes.TEXCOORD_0)
-            if prim.attributes.TEXCOORD_0 is not None
-            else np.zeros((positions.shape[0], 2), dtype=np.float32)
-        )
+        uvs = self._read_accessor(prim.attributes.TEXCOORD_0) if prim.attributes.TEXCOORD_0 is not None else np.zeros((positions.shape[0], 2), dtype=np.float32)
 
         indices = None
         if prim.indices is not None:
@@ -200,19 +186,8 @@ class GLBLoader:
             # Print first few channels with node names
             for i, ch in enumerate(anim0.channels[:10]):
                 node_idx = ch.target.node
-                node_name = (
-                    self.gltf.nodes[node_idx].name
-                    if node_idx is not None
-                    and self.gltf.nodes
-                    and self.gltf.nodes[node_idx].name
-                    else f"<node_{node_idx}>"
-                )
-                print(
-                    f"    Channel {i}: "
-                    f"node={node_name} ({node_idx}), "
-                    f"path={ch.target.path}, "
-                    f"sampler={ch.sampler}"
-                )
+                node_name = self.gltf.nodes[node_idx].name if node_idx is not None and self.gltf.nodes and self.gltf.nodes[node_idx].name else f"<node_{node_idx}>"
+                print(f"    Channel {i}: " f"node={node_name} ({node_idx}), " f"path={ch.target.path}, " f"sampler={ch.sampler}")
 
             # Compute animation duration from sampler inputs
             durations = []
@@ -253,51 +228,23 @@ class GLBLoader:
                     idx = max(0, min(idx, len(times) - 1))
 
                     node_idx = ch.target.node
-                    node_name = (
-                        self.gltf.nodes[node_idx].name
-                        if node_idx is not None
-                        and self.gltf.nodes
-                        and self.gltf.nodes[node_idx].name
-                        else f"<node_{node_idx}>"
-                    )
+                    node_name = self.gltf.nodes[node_idx].name if node_idx is not None and self.gltf.nodes and self.gltf.nodes[node_idx].name else f"<node_{node_idx}>"
 
                     v = values[idx]
 
-                    print(
-                        f"    node={node_name} ({node_idx}), "
-                        f"path={ch.target.path}, "
-                        f"key={idx}, "
-                        f"value={v}"
-                    )
+                    print(f"    node={node_name} ({node_idx}), " f"path={ch.target.path}, " f"key={idx}, " f"value={v}")
 
                     node = ch.target.node
-                    trs_per_node.setdefault(
-                        node,
-                        {
-                            "translation": np.zeros(3, dtype=np.float32),
-                            "rotation": np.array(
-                                [0.0, 0.0, 0.0, 1.0], dtype=np.float32
-                            ),
-                            "scale": np.ones(3, dtype=np.float32),
-                        },
-                    )
+                    trs_per_node.setdefault(node, {"translation": np.zeros(3, dtype=np.float32), "rotation": np.array([0.0, 0.0, 0.0, 1.0], dtype=np.float32), "scale": np.ones(3, dtype=np.float32)})
 
                     trs_per_node[node][ch.target.path] = v
 
                 # --- Debug: build local bone matrix for Hips ---
                 for node_idx, trs in trs_per_node.items():
-                    node_name = (
-                        self.gltf.nodes[node_idx].name
-                        if self.gltf.nodes[node_idx].name
-                        else f"<node_{node_idx}>"
-                    )
+                    node_name = self.gltf.nodes[node_idx].name if self.gltf.nodes[node_idx].name else f"<node_{node_idx}>"
 
                     if node_name == "mixamorig1:Hips":
-                        M_local = self._build_local_matrix(
-                            translation=trs["translation"],
-                            rotation=trs["rotation"],
-                            scale=trs["scale"],
-                        )
+                        M_local = self._build_local_matrix(translation=trs["translation"], rotation=trs["rotation"], scale=trs["scale"])
 
                         print("[GLB] Local bone matrix for Hips:")
                         print(M_local)
@@ -312,11 +259,7 @@ class GLBLoader:
                 # --- Build local matrices for all collected nodes ---
                 local_matrices = {}
                 for n_idx, trs in trs_per_node.items():
-                    local_matrices[n_idx] = self._build_local_matrix(
-                        translation=trs["translation"],
-                        rotation=trs["rotation"],
-                        scale=trs["scale"],
-                    )
+                    local_matrices[n_idx] = self._build_local_matrix(translation=trs["translation"], rotation=trs["rotation"], scale=trs["scale"])
 
                 # --- Recursive global matrix computation ---
                 def compute_global(n_idx):
@@ -331,11 +274,7 @@ class GLBLoader:
 
                 # --- Debug: print global matrices for a small chain ---
                 print("[GLB] Global bone matrices (debug):")
-                for name in (
-                    "mixamorig1:Hips",
-                    "mixamorig1:Spine",
-                    "mixamorig1:Spine1",
-                ):
+                for name in ("mixamorig1:Hips", "mixamorig1:Spine", "mixamorig1:Spine1"):
                     for idx, node in enumerate(self.gltf.nodes):
                         if node.name == name and idx in local_matrices:
                             M_global = compute_global(idx)
@@ -363,11 +302,7 @@ class GLBLoader:
 
                             M_skin = M_global @ M_inv
 
-                            joint_name = (
-                                self.gltf.nodes[joint_idx].name
-                                if self.gltf.nodes[joint_idx].name
-                                else f"<node_{joint_idx}>"
-                            )
+                            joint_name = self.gltf.nodes[joint_idx].name if self.gltf.nodes[joint_idx].name else f"<node_{joint_idx}>"
 
                             print(f"  Skin matrix for {joint_name}:")
                             print(M_skin)
@@ -380,30 +315,14 @@ class GLBLoader:
         animations = []
         if self.gltf.animations:
             for anim in self.gltf.animations:
-                anim_data = {
-                    "name": anim.name,
-                    "samplers": [],
-                    "channels": [],
-                }
+                anim_data = {"name": anim.name, "samplers": [], "channels": []}
 
                 for sampler in anim.samplers:
                     times, values = self._read_animation_sampler(sampler)
-                    anim_data["samplers"].append(
-                        {
-                            "times": times,
-                            "values": values,
-                            "interpolation": sampler.interpolation or "LINEAR",
-                        }
-                    )
+                    anim_data["samplers"].append({"times": times, "values": values, "interpolation": sampler.interpolation or "LINEAR"})
 
                 for ch in anim.channels:
-                    anim_data["channels"].append(
-                        {
-                            "sampler": ch.sampler,
-                            "node": ch.target.node,
-                            "path": ch.target.path,
-                        }
-                    )
+                    anim_data["channels"].append({"sampler": ch.sampler, "node": ch.target.node, "path": ch.target.path})
 
                 animations.append(anim_data)
 

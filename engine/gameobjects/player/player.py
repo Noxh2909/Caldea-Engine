@@ -43,14 +43,7 @@ def look_at(eye, center, up) -> np.ndarray:
 
 
 class Player:
-    def __init__(
-        self,
-        position=(0.0, 4.0, 3.0),
-        yaw=-90.0,
-        pitch=0.0,
-        speed=5.0,
-        sensitivity=0.1,
-    ):
+    def __init__(self, position=(0.0, 4.0, 3.0), yaw=-90.0, pitch=0.0, speed=5.0, sensitivity=0.1):
         """
         Docstring für __init__
 
@@ -163,9 +156,7 @@ class Player:
         # -----------------
         # Sprint state (only selectable on ground)
         # -----------------
-        is_sprinting = (
-            keys.get("sprint", False) and self.on_ground and not self.is_sliding
-        )
+        is_sprinting = keys.get("sprint", False) and self.on_ground and not self.is_sliding
         # base movement speed
         current_speed = self.sprint_speed if is_sprinting else self.walk_speed
 
@@ -212,20 +203,12 @@ class Player:
         # -----------------
         # Slide start (sprint + crouch on ground)
         # -----------------
-        if (
-            self.on_ground
-            and not self.is_sliding
-            and is_sprinting  # sprint required
-            and keys.get("crouch_tap")  # edge-triggered tap
-            and np.linalg.norm(self._air_velocity) > 0.0
-        ):
+        if self.on_ground and not self.is_sliding and is_sprinting and keys.get("crouch_tap") and np.linalg.norm(self._air_velocity) > 0.0:  # sprint required  # edge-triggered tap
             self.is_sliding = True
 
             # Slide speed derives from sprint speed
             slide_dir = normalize(self._air_velocity)
-            self.slide_velocity = slide_dir * (
-                self.sprint_speed * self.slide_speed_multiplier
-            )
+            self.slide_velocity = slide_dir * (self.sprint_speed * self.slide_speed_multiplier)
 
         # -----------------
         # Air movement (preserve momentum)
@@ -245,9 +228,7 @@ class Player:
 
             if np.linalg.norm(air_dir) > 0:
                 air_dir = normalize(air_dir)
-                self._air_velocity += (
-                    air_dir * self.walk_speed * self.air_control * delta_time
-                )
+                self._air_velocity += air_dir * self.walk_speed * self.air_control * delta_time
 
             self.position += self._air_velocity * delta_time
 
@@ -308,17 +289,13 @@ class Player:
             self.headbob_amount = 0.04
 
         # Smoothly interpolate player height
-        self.height += (target_height - self.height) * min(
-            1.0, self.crouch_speed * delta_time
-        )
+        self.height += (target_height - self.height) * min(1.0, self.crouch_speed * delta_time)
 
         # -----------------
         # Head bob (only when moving on ground)
         # -----------------
         if self.on_ground and np.linalg.norm(move_dir) > 0:
-            bob_speed = (
-                self.headbob_speed_sprint if is_sprinting else self.headbob_speed_walk
-            )
+            bob_speed = self.headbob_speed_sprint if is_sprinting else self.headbob_speed_walk
             self.headbob_time += delta_time * bob_speed
             self._headbob_offset = np.sin(self.headbob_time) * self.headbob_amount
         else:
@@ -338,14 +315,7 @@ class Player:
         yaw_rad = math.radians(self.yaw)
         pitch_rad = math.radians(self.pitch)
 
-        front = np.array(
-            [
-                math.cos(yaw_rad) * math.cos(pitch_rad),
-                math.sin(pitch_rad),
-                math.sin(yaw_rad) * math.cos(pitch_rad),
-            ],
-            dtype=np.float32,
-        )
+        front = np.array([math.cos(yaw_rad) * math.cos(pitch_rad), math.sin(pitch_rad), math.sin(yaw_rad) * math.cos(pitch_rad)], dtype=np.float32)
 
         self.front = normalize(front)
         self.right = normalize(np.cross(self.front, self.world_up))

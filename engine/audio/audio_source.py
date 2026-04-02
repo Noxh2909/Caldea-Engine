@@ -49,9 +49,7 @@ class AudioSource:
     # ----------------------------
     # Soft distance fade-out
     # ----------------------------
-    def apply_distance_fade(
-        self, listener_pos, max_distance, base_gain=1.0, fade_start_ratio=0.4
-    ):
+    def apply_distance_fade(self, listener_pos, max_distance, base_gain=1.0, fade_start_ratio=0.4):
         """
         Smoothly fades out sound between fade_start and max_distance.
         fade_start_ratio defines where fading begins (0.0–1.0 of max_distance).

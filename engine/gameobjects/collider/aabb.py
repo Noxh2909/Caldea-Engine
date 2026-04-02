@@ -80,8 +80,8 @@ class AABBCollider:
         # fmt: on
 
     def aabb_in_frustum(self, planes, min_corner, max_corner):
-            for normal, dist in planes:
-                p = np.where(normal >= 0, max_corner, min_corner)
-                if np.dot(normal, p) + dist < 0:
-                    return False
-            return True
+        for normal, dist in planes:
+            p = np.where(normal >= 0, max_corner, min_corner)
+            if np.dot(normal, p) + dist < 0:
+                return False
+        return True

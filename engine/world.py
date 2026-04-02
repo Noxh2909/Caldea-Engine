@@ -23,7 +23,7 @@ class World:
 
         :param self: The object itself
         """
-        self.material_blacklist = {"cloth"}  
+        self.material_blacklist = {"cloth"}
         self.audio_engine = audio_engine
         self.objects: list[GameObject] = []
         self.static_objects: list[GameObject] = []
@@ -39,13 +39,7 @@ class World:
         """
 
         # ---------- transform ----------
-        transform = Transform(
-            position=data.get("position"),
-            scale=data.get("scale"),
-            yaw=data.get("yaw", 0.0),
-            roll=data.get("roll", 0.0),
-            pitch=data.get("pitch", 0.0),
-        )
+        transform = Transform(position=data.get("position"), scale=data.get("scale"), yaw=data.get("yaw", 0.0), roll=data.get("roll", 0.0), pitch=data.get("pitch", 0.0))
 
         # ---------- mesh ----------
         mesh_name = data.get("mesh")
@@ -73,13 +67,7 @@ class World:
 
         # if the glb provided a texture, create a default material from it
         if glb_texture is not None:
-            material = Material(
-                texture=glb_texture,
-                opacity=1.0,
-                double_sided=False,
-                shininess=32,
-                specular_strength=0.5,
-            )
+            material = Material(texture=glb_texture, opacity=1.0, double_sided=False, shininess=32, specular_strength=0.5)
 
         material_data = data.get("material")
 
@@ -116,13 +104,7 @@ class World:
         obj_name = data.get("obj_name")
 
         # ---------- object ----------
-        obj = GameObject(
-            transform=transform,
-            mesh=mesh,
-            material=material,
-            collider=collider,
-            obj_name=obj_name,
-        )
+        obj = GameObject(transform=transform, mesh=mesh, material=material, collider=collider, obj_name=obj_name)
 
         # ---------- gravity ----------
         obj.use_gravity = data.get("gravity", False)

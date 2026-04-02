@@ -1,0 +1,10 @@
+{
+  "shadow": {
+    "resolution": 1024,
+    "near_plane": 0.1,
+    "far_plane": 50.0,
+    "soft_shadows": true,
+    "pcf_samples": 16,
+    "pcf_radius": 0.05
+  }
+}

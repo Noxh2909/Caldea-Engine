@@ -1,9 +1,8 @@
 import numpy as np
 
+
 class GameObject:
-    def __init__(
-        self, transform, mesh=None, material=None, collider=None, obj_name=None
-    ):
+    def __init__(self, transform, mesh=None, material=None, collider=None, obj_name=None):
         """
         Docstring für __init__
 
@@ -23,7 +22,7 @@ class GameObject:
         self.obj_name = obj_name or "GameObject(name_placeholder)"
 
         self.components = []
-        
+
         # physics attributes
         self.use_gravity = False
         self.velocity = np.zeros(3, dtype=np.float32)

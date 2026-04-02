@@ -102,24 +102,10 @@ class LightRenderer:
         for i, sample in enumerate(self.ssao_kernel):
             loc = GL.glGetUniformLocation(self.ssao_program, f"samples[{i}]")
             GL.glUniform3fv(loc, 1, sample)
-        GL.glUniform1i(
-            GL.glGetUniformLocation(self.ssao_program, "kernelSize"),
-            len(self.ssao_kernel),
-        )
-        GL.glUniform1f(
-            GL.glGetUniformLocation(self.ssao_program, "radius"),
-            utils.ssao_cfg.get("radius"),
-        )
-        GL.glUniform1f(
-            GL.glGetUniformLocation(self.ssao_program, "bias"),
-            utils.ssao_cfg.get("bias"),
-        )
-        GL.glUniformMatrix4fv(
-            GL.glGetUniformLocation(self.ssao_program, "projection"),
-            1,
-            GL.GL_TRUE,
-            self.camera.get_projection_matrix(self.width / self.height),
-        )
+        GL.glUniform1i(GL.glGetUniformLocation(self.ssao_program, "kernelSize"), len(self.ssao_kernel))
+        GL.glUniform1f(GL.glGetUniformLocation(self.ssao_program, "radius"), utils.ssao_cfg.get("radius"))
+        GL.glUniform1f(GL.glGetUniformLocation(self.ssao_program, "bias"), utils.ssao_cfg.get("bias"))
+        GL.glUniformMatrix4fv(GL.glGetUniformLocation(self.ssao_program, "projection"), 1, GL.GL_TRUE, self.camera.get_projection_matrix(self.width / self.height))
 
     # -----------------------
     # Shader Compilation
@@ -133,37 +119,15 @@ class LightRenderer:
 
         :param self: The object itself
         """
-        self.depth_program = utils.link_program(
-            DEPTH_VERTEX_SHADER_SRC,
-            DEPTH_FRAGMENT_SHADER_SRC,
-            DEPTH_GEOMETRY_SHADER_SRC,
-        )
-        self.geometry_program = utils.link_program(
-            GEOMETRY_VERTEX_SHADER_SRC, GEOMETRY_FRAGMENT_SHADER_SRC
-        )
-        self.ssao_program = utils.link_program(
-            SSAO_VERTEX_SHADER_SRC, SSAO_FRAGMENT_SHADER_SRC
-        )
-        self.ssao_blur_program = utils.link_program(
-            SSAO_VERTEX_SHADER_SRC, SSAO_BLUR_FRAGMENT_SHADER_SRC
-        )
-        self.bloom_bright_program = utils.link_program(
-            SSAO_VERTEX_SHADER_SRC,
-            BLOOM_BRIGHT_FRAGMENT_SHADER_SRC,
-        )
-        self.bloom_blur_program = utils.link_program(
-            SSAO_VERTEX_SHADER_SRC,
-            BLOOM_BLUR_FRAGMENT_SHADER_SRC,
-        )
-        self.bloom_final_program = utils.link_program(
-            SSAO_VERTEX_SHADER_SRC, BLOOM_FINAL_FRAGMENT_SHADER_SRC
-        )
-        self.volumetric_program = utils.link_program(
-            SSAO_VERTEX_SHADER_SRC, VOLUMETRIC_LIGHT_FRAGMENT_SHADER_SRC
-        )
-        self.final_program = utils.link_program(
-            FINAL_VERTEX_SHADER_SRC, FINAL_FRAGMENT_SHADER_SRC
-        )
+        self.depth_program = utils.link_program(DEPTH_VERTEX_SHADER_SRC, DEPTH_FRAGMENT_SHADER_SRC, DEPTH_GEOMETRY_SHADER_SRC)
+        self.geometry_program = utils.link_program(GEOMETRY_VERTEX_SHADER_SRC, GEOMETRY_FRAGMENT_SHADER_SRC)
+        self.ssao_program = utils.link_program(SSAO_VERTEX_SHADER_SRC, SSAO_FRAGMENT_SHADER_SRC)
+        self.ssao_blur_program = utils.link_program(SSAO_VERTEX_SHADER_SRC, SSAO_BLUR_FRAGMENT_SHADER_SRC)
+        self.bloom_bright_program = utils.link_program(SSAO_VERTEX_SHADER_SRC, BLOOM_BRIGHT_FRAGMENT_SHADER_SRC)
+        self.bloom_blur_program = utils.link_program(SSAO_VERTEX_SHADER_SRC, BLOOM_BLUR_FRAGMENT_SHADER_SRC)
+        self.bloom_final_program = utils.link_program(SSAO_VERTEX_SHADER_SRC, BLOOM_FINAL_FRAGMENT_SHADER_SRC)
+        self.volumetric_program = utils.link_program(SSAO_VERTEX_SHADER_SRC, VOLUMETRIC_LIGHT_FRAGMENT_SHADER_SRC)
+        self.final_program = utils.link_program(FINAL_VERTEX_SHADER_SRC, FINAL_FRAGMENT_SHADER_SRC)
 
     # -----------------------
     # Shadow Map Creation
@@ -184,44 +148,20 @@ class LightRenderer:
         GL.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, depth_cubemap)
 
         for i in range(6):
-            GL.glTexImage2D(
-                int(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X) + i,
-                0,
-                GL.GL_DEPTH_COMPONENT,
-                size,
-                size,
-                0,
-                GL.GL_DEPTH_COMPONENT,
-                GL.GL_FLOAT,
-                None,
-            )
+            GL.glTexImage2D(int(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X) + i, 0, GL.GL_DEPTH_COMPONENT, size, size, 0, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, None)
 
-        GL.glTexParameteri(
-            GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST
-        )
-        GL.glTexParameteri(
-            GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST
-        )
-        GL.glTexParameteri(
-            GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE
-        )
-        GL.glTexParameteri(
-            GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE
-        )
-        GL.glTexParameteri(
-            GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_R, GL.GL_CLAMP_TO_EDGE
-        )
+        GL.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
+        GL.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
+        GL.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE)
+        GL.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE)
+        GL.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_R, GL.GL_CLAMP_TO_EDGE)
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, depth_fbo)
-        GL.glFramebufferTexture(
-            GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, depth_cubemap, 0
-        )
+        GL.glFramebufferTexture(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, depth_cubemap, 0)
         GL.glDrawBuffer(GL.GL_NONE)
         GL.glReadBuffer(GL.GL_NONE)
 
-        assert (
-            GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) == GL.GL_FRAMEBUFFER_COMPLETE
-        )
+        assert GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) == GL.GL_FRAMEBUFFER_COMPLETE
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
         return depth_fbo, depth_cubemap
@@ -271,50 +211,18 @@ class LightRenderer:
         # HDR color texture
         self.hdr_color = GL.glGenTextures(1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.hdr_color)
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D,
-            0,
-            GL.GL_RGBA16F,
-            self.width,
-            self.height,
-            0,
-            GL.GL_RGBA,
-            GL.GL_FLOAT,
-            None,
-        )
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA16F, self.width, self.height, 0, GL.GL_RGBA, GL.GL_FLOAT, None)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-        GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_COLOR_ATTACHMENT0,
-            GL.GL_TEXTURE_2D,
-            self.hdr_color,
-            0,
-        )
+        GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D, self.hdr_color, 0)
 
         # Depth texture (IMPORTANT for volumetric lighting)
         self.hdr_depth = GL.glGenTextures(1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.hdr_depth)
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D,
-            0,
-            GL.GL_DEPTH_COMPONENT24,
-            self.width,
-            self.height,
-            0,
-            GL.GL_DEPTH_COMPONENT,
-            GL.GL_FLOAT,
-            None,
-        )
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_DEPTH_COMPONENT24, self.width, self.height, 0, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, None)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-        GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_DEPTH_ATTACHMENT,
-            GL.GL_TEXTURE_2D,
-            self.hdr_depth,
-            0,
-        )
+        GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_TEXTURE_2D, self.hdr_depth, 0)
 
         if GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) != GL.GL_FRAMEBUFFER_COMPLETE:
             raise RuntimeError("HDR Framebuffer not complete")
@@ -329,27 +237,11 @@ class LightRenderer:
 
         self.volumetric_tex = GL.glGenTextures(1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.volumetric_tex)
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D,
-            0,
-            GL.GL_RGBA16F,
-            self.width,
-            self.height,
-            0,
-            GL.GL_RGBA,
-            GL.GL_FLOAT,
-            None,
-        )
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA16F, self.width, self.height, 0, GL.GL_RGBA, GL.GL_FLOAT, None)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
 
-        GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_COLOR_ATTACHMENT0,
-            GL.GL_TEXTURE_2D,
-            self.volumetric_tex,
-            0,
-        )
+        GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D, self.volumetric_tex, 0)
 
         if GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) != GL.GL_FRAMEBUFFER_COMPLETE:
             raise RuntimeError("Volumetric Framebuffer not complete")
@@ -365,31 +257,12 @@ class LightRenderer:
         for i in range(2):
             GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.blur_fbo[i])
             GL.glBindTexture(GL.GL_TEXTURE_2D, self.blur_tex[i])
-            GL.glTexImage2D(
-                GL.GL_TEXTURE_2D,
-                0,
-                GL.GL_RGBA16F,
-                self.width,
-                self.height,
-                0,
-                GL.GL_RGBA,
-                GL.GL_FLOAT,
-                None,
-            )
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA16F, self.width, self.height, 0, GL.GL_RGBA, GL.GL_FLOAT, None)
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-            GL.glFramebufferTexture2D(
-                GL.GL_FRAMEBUFFER,
-                GL.GL_COLOR_ATTACHMENT0,
-                GL.GL_TEXTURE_2D,
-                self.blur_tex[i],
-                0,
-            )
+            GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D, self.blur_tex[i], 0)
 
-            if (
-                GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER)
-                != GL.GL_FRAMEBUFFER_COMPLETE
-            ):
+            if GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) != GL.GL_FRAMEBUFFER_COMPLETE:
                 raise RuntimeError("Bloom Framebuffer not complete")
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
@@ -419,94 +292,35 @@ class LightRenderer:
         # Position texture
         self.g_position = GL.glGenTextures(1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.g_position)
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D,
-            0,
-            GL.GL_RGB32F,
-            width,
-            height,
-            0,
-            GL.GL_RGB,
-            GL.GL_FLOAT,
-            None,
-        )
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB32F, width, height, 0, GL.GL_RGB, GL.GL_FLOAT, None)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-        GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_COLOR_ATTACHMENT0,
-            GL.GL_TEXTURE_2D,
-            self.g_position,
-            0,
-        )
+        GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D, self.g_position, 0)
 
         # Normal texture
         self.g_normal = GL.glGenTextures(1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.g_normal)
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D,
-            0,
-            GL.GL_RGB16F,
-            width,
-            height,
-            0,
-            GL.GL_RGB,
-            GL.GL_FLOAT,
-            None,
-        )
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB16F, width, height, 0, GL.GL_RGB, GL.GL_FLOAT, None)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-        GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_COLOR_ATTACHMENT1,
-            GL.GL_TEXTURE_2D,
-            self.g_normal,
-            0,
-        )
+        GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT1, GL.GL_TEXTURE_2D, self.g_normal, 0)
 
         # Color Buffer (RGB16F for view normal)
         self.g_color = GL.glGenTextures(1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.g_color)
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D,
-            0,
-            GL.GL_RGB16F,
-            width,
-            height,
-            0,
-            GL.GL_RGB,
-            GL.GL_FLOAT,
-            None,
-        )
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB16F, width, height, 0, GL.GL_RGB, GL.GL_FLOAT, None)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-        GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_COLOR_ATTACHMENT2,
-            GL.GL_TEXTURE_2D,
-            self.g_color,
-            0,
-        )
+        GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT2, GL.GL_TEXTURE_2D, self.g_color, 0)
 
         # depth renderbuffer
         self.rbo_depth = GL.glGenRenderbuffers(1)
         GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, self.rbo_depth)
-        GL.glRenderbufferStorage(
-            GL.GL_RENDERBUFFER, GL.GL_DEPTH_COMPONENT, width, height
-        )
-        GL.glFramebufferRenderbuffer(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_DEPTH_ATTACHMENT,
-            GL.GL_RENDERBUFFER,
-            self.rbo_depth,
-        )
+        GL.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL.GL_DEPTH_COMPONENT, width, height)
+        GL.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, self.rbo_depth)
 
         # specify the color attachments for rendering
-        self.attachments = [
-            GL.GL_COLOR_ATTACHMENT0,
-            GL.GL_COLOR_ATTACHMENT1,
-            GL.GL_COLOR_ATTACHMENT2,
-        ]
+        self.attachments = [GL.GL_COLOR_ATTACHMENT0, GL.GL_COLOR_ATTACHMENT1, GL.GL_COLOR_ATTACHMENT2]
         GL.glDrawBuffers(len(self.attachments), self.attachments)
         if GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) != GL.GL_FRAMEBUFFER_COMPLETE:
             raise RuntimeError("G-Buffer Framebuffer not complete")
@@ -517,26 +331,10 @@ class LightRenderer:
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.ssao_fbo)
         self.ssao_texture = GL.glGenTextures(1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.ssao_texture)
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D,
-            0,
-            GL.GL_RED,
-            width,
-            height,
-            0,
-            GL.GL_RED,
-            GL.GL_FLOAT,
-            None,
-        )
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RED, width, height, 0, GL.GL_RED, GL.GL_FLOAT, None)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-        GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_COLOR_ATTACHMENT0,
-            GL.GL_TEXTURE_2D,
-            self.ssao_texture,
-            0,
-        )
+        GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D, self.ssao_texture, 0)
         if GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) != GL.GL_FRAMEBUFFER_COMPLETE:
             raise RuntimeError("SSAO Framebuffer not complete")
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
@@ -546,26 +344,10 @@ class LightRenderer:
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.ssao_blur_fbo)
         self.ssao_blur_texture = GL.glGenTextures(1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.ssao_blur_texture)
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D,
-            0,
-            GL.GL_RED,
-            width,
-            height,
-            0,
-            GL.GL_RED,
-            GL.GL_FLOAT,
-            None,
-        )
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RED, width, height, 0, GL.GL_RED, GL.GL_FLOAT, None)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-        GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
-            GL.GL_COLOR_ATTACHMENT0,
-            GL.GL_TEXTURE_2D,
-            self.ssao_blur_texture,
-            0,
-        )
+        GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D, self.ssao_blur_texture, 0)
         if GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) != GL.GL_FRAMEBUFFER_COMPLETE:
             raise RuntimeError("SSAO Blur Framebuffer not complete")
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
@@ -600,14 +382,7 @@ class LightRenderer:
         """
         self.kernel = []
         for i in range(kernel_size):
-            sample = np.array(
-                [
-                    random.uniform(-1.0, 1.0),
-                    random.uniform(-1.0, 1.0),
-                    random.uniform(0.0, 1.0),
-                ],
-                dtype=np.float32,
-            )
+            sample = np.array([random.uniform(-1.0, 1.0), random.uniform(-1.0, 1.0), random.uniform(0.0, 1.0)], dtype=np.float32)
             sample = sample / np.linalg.norm(sample)
             scale = float(i) / kernel_size
             scale = 0.1 + 0.9 * (scale * scale)
@@ -632,17 +407,8 @@ class LightRenderer:
         self.noise = np.zeros((4, 4, 3), dtype=np.float32)
         for i in range(4):
             for j in range(4):
-                self.noise[i, j] = np.array(
-                    [
-                        random.uniform(-1.0, 1.0),
-                        random.uniform(-1.0, 1.0),
-                        0.0,
-                    ],
-                    dtype=np.float32,
-                )
-                self.noise[i, j] = self.noise[i, j] / np.linalg.norm(
-                    self.noise[i, j]
-                )  # normalize (Optional)
+                self.noise[i, j] = np.array([random.uniform(-1.0, 1.0), random.uniform(-1.0, 1.0), 0.0], dtype=np.float32)
+                self.noise[i, j] = self.noise[i, j] / np.linalg.norm(self.noise[i, j])  # normalize (Optional)
         return self.noise
 
     # -----------------------
@@ -659,9 +425,7 @@ class LightRenderer:
         """
         noise_texture = GL.glGenTextures(1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, noise_texture)
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D, 0, GL.GL_RGB16F, 4, 4, 0, GL.GL_RGB, GL.GL_FLOAT, noise
-        )
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB16F, 4, 4, 0, GL.GL_RGB, GL.GL_FLOAT, noise)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
@@ -680,12 +444,8 @@ class LightRenderer:
 
         :param self: The Renderer instance
         """
-        self.shadowsize = utils.shadow_cfg.get(
-            "resolution"
-        )  # High-res shadow map for detailed shadows, impacts performance very much
-        self.depth_fbo, self.depth_texture = self.create_point_shadow_map(
-            self.shadowsize
-        )
+        self.shadowsize = utils.shadow_cfg.get("resolution")  # High-res shadow map for detailed shadows, impacts performance very much
+        self.depth_fbo, self.depth_texture = self.create_point_shadow_map(self.shadowsize)
         self.ssao_data = self.create_ssao_buffers(self.width, self.height)
 
     # -----------------------
@@ -698,91 +458,41 @@ class LightRenderer:
         """Query and store frequently accessed uniform locations."""
 
         self.depth_model_loc = GL.glGetUniformLocation(self.depth_program, "model")
-        self.depth_light_pos_loc = GL.glGetUniformLocation(
-            self.depth_program, "lightPos"
-        )
-        self.depth_far_plane_loc = GL.glGetUniformLocation(
-            self.depth_program, "far_plane"
-        )
+        self.depth_light_pos_loc = GL.glGetUniformLocation(self.depth_program, "lightPos")
+        self.depth_far_plane_loc = GL.glGetUniformLocation(self.depth_program, "far_plane")
         self.g_model_loc = GL.glGetUniformLocation(self.geometry_program, "model")
         self.g_view_loc = GL.glGetUniformLocation(self.geometry_program, "view")
         self.g_proj_loc = GL.glGetUniformLocation(self.geometry_program, "projection")
-        self.g_object_color_loc = GL.glGetUniformLocation(
-            self.geometry_program, "objectColor"
-        )
+        self.g_object_color_loc = GL.glGetUniformLocation(self.geometry_program, "objectColor")
         self.final_model_loc = GL.glGetUniformLocation(self.final_program, "model")
         self.final_view_loc = GL.glGetUniformLocation(self.final_program, "view")
         self.final_proj_loc = GL.glGetUniformLocation(self.final_program, "projection")
-        self.final_lightspace_loc = GL.glGetUniformLocation(
-            self.final_program, "lightSpaceMatrix"
-        )
-        self.final_light_pos_loc = GL.glGetUniformLocation(
-            self.final_program, "lightPos"
-        )
+        self.final_lightspace_loc = GL.glGetUniformLocation(self.final_program, "lightSpaceMatrix")
+        self.final_light_pos_loc = GL.glGetUniformLocation(self.final_program, "lightPos")
         self.final_view_pos_loc = GL.glGetUniformLocation(self.final_program, "viewPos")
-        self.final_light_color_loc = GL.glGetUniformLocation(
-            self.final_program, "lightColor"
-        )
-        self.final_light_intensity_loc = GL.glGetUniformLocation(
-            self.final_program, "u_lightIntensity"
-        )
-        self.final_ambient_strength_loc = GL.glGetUniformLocation(
-            self.final_program, "u_ambientStrength"
-        )
-        self.final_specular_strength_loc = GL.glGetUniformLocation(
-            self.final_program, "u_specularStrength"
-        )
-        self.final_shininess_loc = GL.glGetUniformLocation(
-            self.final_program, "u_shininess"
-        )
-        self.final_object_color_loc = GL.glGetUniformLocation(
-            self.final_program, "objectColor"
-        )
-        self.final_reflection_vp_loc = GL.glGetUniformLocation(
-            self.final_program, "reflectionViewProj"
-        )
-        self.final_soft_shadows_loc = GL.glGetUniformLocation(
-            self.final_program, "u_softShadows"
-        )
-        self.final_pcf_samples_loc = GL.glGetUniformLocation(
-            self.final_program, "u_pcfSamples"
-        )
-        self.final_pcf_radius_loc = GL.glGetUniformLocation(
-            self.final_program, "u_pcfRadius"
-        )
-        self.final_double_sided_loc = GL.glGetUniformLocation(
-            self.final_program, "u_double_sided"
-        )
-        self.final_opacity_loc = GL.glGetUniformLocation(
-            self.final_program, "u_opacity"
-        )
-        self.final_texture_loc = GL.glGetUniformLocation(
-            self.final_program, "u_texture"
-        )
-        self.final_use_texture_loc = GL.glGetUniformLocation(
-            self.final_program, "u_use_texture"
-        )
-        self.final_texture_mode_loc = GL.glGetUniformLocation(
-            self.final_program, "u_texture_mode"
-        )
-        self.final_triplanar_scale_loc = GL.glGetUniformLocation(
-            self.final_program, "u_triplanar_scale"
-        )
-        self.final_far_plane_loc = GL.glGetUniformLocation(
-            self.final_program, "far_plane"
-        )
-        self.final_depth_map_loc = GL.glGetUniformLocation(
-            self.final_program, "depthMap"
-        )
-        self.final_ssao_texture_loc = GL.glGetUniformLocation(
-            self.final_program, "ssaoTexture"
-        )
+        self.final_light_color_loc = GL.glGetUniformLocation(self.final_program, "lightColor")
+        self.final_light_intensity_loc = GL.glGetUniformLocation(self.final_program, "u_lightIntensity")
+        self.final_ambient_strength_loc = GL.glGetUniformLocation(self.final_program, "u_ambientStrength")
+        self.final_specular_strength_loc = GL.glGetUniformLocation(self.final_program, "u_specularStrength")
+        self.final_shininess_loc = GL.glGetUniformLocation(self.final_program, "u_shininess")
+        self.final_object_color_loc = GL.glGetUniformLocation(self.final_program, "objectColor")
+        self.final_reflection_vp_loc = GL.glGetUniformLocation(self.final_program, "reflectionViewProj")
+        self.final_soft_shadows_loc = GL.glGetUniformLocation(self.final_program, "u_softShadows")
+        self.final_pcf_samples_loc = GL.glGetUniformLocation(self.final_program, "u_pcfSamples")
+        self.final_pcf_radius_loc = GL.glGetUniformLocation(self.final_program, "u_pcfRadius")
+        self.final_double_sided_loc = GL.glGetUniformLocation(self.final_program, "u_double_sided")
+        self.final_opacity_loc = GL.glGetUniformLocation(self.final_program, "u_opacity")
+        self.final_texture_loc = GL.glGetUniformLocation(self.final_program, "u_texture")
+        self.final_use_texture_loc = GL.glGetUniformLocation(self.final_program, "u_use_texture")
+        self.final_texture_mode_loc = GL.glGetUniformLocation(self.final_program, "u_texture_mode")
+        self.final_triplanar_scale_loc = GL.glGetUniformLocation(self.final_program, "u_triplanar_scale")
+        self.final_far_plane_loc = GL.glGetUniformLocation(self.final_program, "far_plane")
+        self.final_depth_map_loc = GL.glGetUniformLocation(self.final_program, "depthMap")
+        self.final_ssao_texture_loc = GL.glGetUniformLocation(self.final_program, "ssaoTexture")
         self.ssao_gpos_loc = GL.glGetUniformLocation(self.ssao_program, "gPosition")
         self.ssao_gnormal_loc = GL.glGetUniformLocation(self.ssao_program, "gNormal")
         self.ssao_noise_loc = GL.glGetUniformLocation(self.ssao_program, "noiseTex")
-        self.ssao_blur_input_loc = GL.glGetUniformLocation(
-            self.ssao_blur_program, "ssaoInput"
-        )
+        self.ssao_blur_input_loc = GL.glGetUniformLocation(self.ssao_blur_program, "ssaoInput")
 
     # -----------------------
     # Shadow mapping
@@ -790,9 +500,7 @@ class LightRenderer:
     # Functions related to shadow mapping for point lights.
     # -----------------------
 
-    def point_light_matrices(
-        self, light_pos=None, near_plane=None, far_plane=None
-    ) -> list:
+    def point_light_matrices(self, light_pos=None, near_plane=None, far_plane=None) -> list:
         """
         Generate view-projection matrices for omnidirectional
         point-light shadow mapping.
@@ -811,36 +519,16 @@ class LightRenderer:
         if far_plane is None:
             far_plane = utils.shadow_cfg.get("far_plane")
 
-        proj = self.camera.get_projection_matrix(
-            aspect=1.0, near=near_plane, far=far_plane, fov=90.0
-        )
+        proj = self.camera.get_projection_matrix(aspect=1.0, near=near_plane, far=far_plane, fov=90.0)
 
         matrices = []
 
-        matrices.append(
-            proj
-            @ look_at(light_pos, light_pos + np.array([1, 0, 0]), np.array([0, -1, 0]))
-        )
-        matrices.append(
-            proj
-            @ look_at(light_pos, light_pos + np.array([-1, 0, 0]), np.array([0, -1, 0]))
-        )
-        matrices.append(
-            proj
-            @ look_at(light_pos, light_pos + np.array([0, 1, 0]), np.array([0, 0, 1]))
-        )
-        matrices.append(
-            proj
-            @ look_at(light_pos, light_pos + np.array([0, -1, 0]), np.array([0, 0, -1]))
-        )
-        matrices.append(
-            proj
-            @ look_at(light_pos, light_pos + np.array([0, 0, 1]), np.array([0, -1, 0]))
-        )
-        matrices.append(
-            proj
-            @ look_at(light_pos, light_pos + np.array([0, 0, -1]), np.array([0, -1, 0]))
-        )
+        matrices.append(proj @ look_at(light_pos, light_pos + np.array([1, 0, 0]), np.array([0, -1, 0])))
+        matrices.append(proj @ look_at(light_pos, light_pos + np.array([-1, 0, 0]), np.array([0, -1, 0])))
+        matrices.append(proj @ look_at(light_pos, light_pos + np.array([0, 1, 0]), np.array([0, 0, 1])))
+        matrices.append(proj @ look_at(light_pos, light_pos + np.array([0, -1, 0]), np.array([0, 0, -1])))
+        matrices.append(proj @ look_at(light_pos, light_pos + np.array([0, 0, 1]), np.array([0, -1, 0])))
+        matrices.append(proj @ look_at(light_pos, light_pos + np.array([0, 0, -1]), np.array([0, -1, 0])))
 
         return matrices
 
@@ -883,21 +571,14 @@ class LightRenderer:
 
         if avatars:
             for avatar in avatars:
-                GL.glUniformMatrix4fv(
-                    self.depth_model_loc, 1, GL.GL_TRUE, avatar.matrix()
-                )
+                GL.glUniformMatrix4fv(self.depth_model_loc, 1, GL.GL_TRUE, avatar.matrix())
                 avatar.mesh.draw()
 
         for obj in scene_objects:
             if obj.mesh is None or obj.material is None:
                 continue
 
-            GL.glUniformMatrix4fv(
-                self.depth_model_loc,
-                1,
-                GL.GL_TRUE,
-                obj.transform.matrix(),
-            )
+            GL.glUniformMatrix4fv(self.depth_model_loc, 1, GL.GL_TRUE, obj.transform.matrix())
             if getattr(obj.material, "double_sided", False):
                 # For thin geometry like cloth:
                 # Render BOTH sides into shadow map
@@ -942,23 +623,17 @@ class LightRenderer:
 
         GL.glBindVertexArray(self.quad_vao)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.quad_vbo)
-        GL.glBufferData(
-            GL.GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL.GL_STATIC_DRAW
-        )
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL.GL_STATIC_DRAW)
 
         stride = 4 * 4  # 4 floats per vertex
 
         # position (location = 0)
         GL.glEnableVertexAttribArray(0)
-        GL.glVertexAttribPointer(
-            0, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(0)
-        )
+        GL.glVertexAttribPointer(0, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(0))
 
         # texcoord (location = 1)
         GL.glEnableVertexAttribArray(1)
-        GL.glVertexAttribPointer(
-            1, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(8)
-        )
+        GL.glVertexAttribPointer(1, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(8))
 
         GL.glBindVertexArray(0)
 
@@ -999,9 +674,7 @@ class LightRenderer:
             if obj.mesh is None or obj.material is None:
                 continue
 
-            GL.glUniformMatrix4fv(
-                self.g_model_loc, 1, GL.GL_TRUE, obj.transform.matrix()
-            )
+            GL.glUniformMatrix4fv(self.g_model_loc, 1, GL.GL_TRUE, obj.transform.matrix())
 
             GL.glUniform3f(self.g_object_color_loc, 1.0, 1.0, 1.0)
 
@@ -1066,12 +739,8 @@ class LightRenderer:
         if not bloom.get("enabled", False):
             return
 
-        threshold = bloom.get(
-            "threshold"
-        )  # brightness threshold, determines what is "bright"
-        intensity = bloom.get(
-            "intensity"
-        )  # bloom intensity, determines how strong the bloom effect is
+        threshold = bloom.get("threshold")  # brightness threshold, determines what is "bright"
+        intensity = bloom.get("intensity")  # bloom intensity, determines how strong the bloom effect is
         blur_passes = 6  # number of blur passes, determines how much the bloom spreads
 
         """
@@ -1089,12 +758,8 @@ class LightRenderer:
 
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.hdr_color)
-        GL.glUniform1i(
-            GL.glGetUniformLocation(self.bloom_bright_program, "hdrScene"), 0
-        )
-        GL.glUniform1f(
-            GL.glGetUniformLocation(self.bloom_bright_program, "threshold"), threshold
-        )
+        GL.glUniform1i(GL.glGetUniformLocation(self.bloom_bright_program, "hdrScene"), 0)
+        GL.glUniform1f(GL.glGetUniformLocation(self.bloom_bright_program, "threshold"), threshold)
 
         GL.glBindVertexArray(self.quad_vao)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
@@ -1108,10 +773,7 @@ class LightRenderer:
 
         for _ in range(blur_passes):
             GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.blur_fbo[write_fbo])
-            GL.glUniform1i(
-                GL.glGetUniformLocation(self.bloom_blur_program, "horizontal"),
-                horizontal,
-            )
+            GL.glUniform1i(GL.glGetUniformLocation(self.bloom_blur_program, "horizontal"), horizontal)
 
             GL.glBindTexture(GL.GL_TEXTURE_2D, self.blur_tex[read_tex])
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
@@ -1133,20 +795,13 @@ class LightRenderer:
 
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, final_blur_tex)
-        GL.glUniform1i(
-            GL.glGetUniformLocation(self.bloom_final_program, "bloomBlur"), 1
-        )
+        GL.glUniform1i(GL.glGetUniformLocation(self.bloom_final_program, "bloomBlur"), 1)
 
         GL.glActiveTexture(GL.GL_TEXTURE2)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.volumetric_tex)
-        GL.glUniform1i(
-            GL.glGetUniformLocation(self.bloom_final_program, "volumetricTex"), 2
-        )
+        GL.glUniform1i(GL.glGetUniformLocation(self.bloom_final_program, "volumetricTex"), 2)
 
-        GL.glUniform1f(
-            GL.glGetUniformLocation(self.bloom_final_program, "bloomIntensity"),
-            intensity,
-        )
+        GL.glUniform1f(GL.glGetUniformLocation(self.bloom_final_program, "bloomIntensity"), intensity)
 
         GL.glBindVertexArray(self.quad_vao)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
@@ -1177,58 +832,22 @@ class LightRenderer:
 
         cfg = utils.volumetric_cfg
 
-        GL.glUniform1i(
-            GL.glGetUniformLocation(self.volumetric_program, "u_samples"),
-            cfg.get("samples"),
-        )
-        GL.glUniform1f(
-            GL.glGetUniformLocation(self.volumetric_program, "u_density"),
-            cfg.get("density"),
-        )
-        GL.glUniform1f(
-            GL.glGetUniformLocation(self.volumetric_program, "u_decay"),
-            cfg.get("decay"),
-        )
-        GL.glUniform1f(
-            GL.glGetUniformLocation(self.volumetric_program, "u_weight"),
-            cfg.get("weight"),
-        )
-        GL.glUniform1f(
-            GL.glGetUniformLocation(self.volumetric_program, "u_exposure"),
-            cfg.get("exposure"),
-        )
+        GL.glUniform1i(GL.glGetUniformLocation(self.volumetric_program, "u_samples"), cfg.get("samples"))
+        GL.glUniform1f(GL.glGetUniformLocation(self.volumetric_program, "u_density"), cfg.get("density"))
+        GL.glUniform1f(GL.glGetUniformLocation(self.volumetric_program, "u_decay"), cfg.get("decay"))
+        GL.glUniform1f(GL.glGetUniformLocation(self.volumetric_program, "u_weight"), cfg.get("weight"))
+        GL.glUniform1f(GL.glGetUniformLocation(self.volumetric_program, "u_exposure"), cfg.get("exposure"))
 
-        GL.glUniform3fv(
-            GL.glGetUniformLocation(self.volumetric_program, "lightPos"),
-            1,
-            self.light_pos,
-        )
+        GL.glUniform3fv(GL.glGetUniformLocation(self.volumetric_program, "lightPos"), 1, self.light_pos)
 
-        GL.glUniformMatrix4fv(
-            GL.glGetUniformLocation(self.volumetric_program, "projection"),
-            1,
-            GL.GL_TRUE,
-            self.camera.get_projection_matrix(self.width / self.height),
-        )
+        GL.glUniformMatrix4fv(GL.glGetUniformLocation(self.volumetric_program, "projection"), 1, GL.GL_TRUE, self.camera.get_projection_matrix(self.width / self.height))
 
-        GL.glUniformMatrix4fv(
-            GL.glGetUniformLocation(self.volumetric_program, "view"),
-            1,
-            GL.GL_TRUE,
-            camera.get_view_matrix(),
-        )
+        GL.glUniformMatrix4fv(GL.glGetUniformLocation(self.volumetric_program, "view"), 1, GL.GL_TRUE, camera.get_view_matrix())
 
         # Use actual camera world position (from player)
-        GL.glUniform3fv(
-            GL.glGetUniformLocation(self.volumetric_program, "viewPos"),
-            1,
-            camera.player.position,
-        )
+        GL.glUniform3fv(GL.glGetUniformLocation(self.volumetric_program, "viewPos"), 1, camera.player.position)
 
-        GL.glUniform1f(
-            GL.glGetUniformLocation(self.volumetric_program, "far_plane"),
-            utils.shadow_cfg.get("far_plane"),
-        )
+        GL.glUniform1f(GL.glGetUniformLocation(self.volumetric_program, "far_plane"), utils.shadow_cfg.get("far_plane"))
 
         # --- Bind depth cubemap as depthMap at texture unit 0 ---
         GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -1238,9 +857,7 @@ class LightRenderer:
         # --- Bind scene depth texture for geometry ray stop ---
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.hdr_depth)
-        GL.glUniform1i(
-            GL.glGetUniformLocation(self.volumetric_program, "sceneDepth"), 1
-        )
+        GL.glUniform1i(GL.glGetUniformLocation(self.volumetric_program, "sceneDepth"), 1)
 
         GL.glBindVertexArray(self.quad_vao)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
@@ -1254,15 +871,7 @@ class LightRenderer:
     # and shading to produce the final image.
     # -----------------------
 
-    def render_final_pass(
-        self,
-        player,
-        camera,
-        scene_objects: list[GameObject],
-        screen_width,
-        screen_height,
-        debug_renderer=None,
-    ) -> None:
+    def render_final_pass(self, player, camera, scene_objects: list[GameObject], screen_width, screen_height, debug_renderer=None) -> None:
         """
         Final lighting composition pass.
 
@@ -1298,15 +907,8 @@ class LightRenderer:
         # =========================
         # Global uniforms
         # =========================
-        GL.glUniformMatrix4fv(
-            self.final_proj_loc,
-            1,
-            GL.GL_TRUE,
-            self.camera.get_projection_matrix(self.width / self.height),
-        )
-        GL.glUniformMatrix4fv(
-            self.final_view_loc, 1, GL.GL_TRUE, camera.get_view_matrix()
-        )
+        GL.glUniformMatrix4fv(self.final_proj_loc, 1, GL.GL_TRUE, self.camera.get_projection_matrix(self.width / self.height))
+        GL.glUniformMatrix4fv(self.final_view_loc, 1, GL.GL_TRUE, camera.get_view_matrix())
 
         # =========================
         # Light uniforms
@@ -1318,15 +920,9 @@ class LightRenderer:
         GL.glUniform1f(self.final_light_intensity_loc, self.light_intensity)
         GL.glUniform1f(self.final_ambient_strength_loc, self.light_ambient)
 
-        GL.glUniform1f(
-            self.final_far_plane_loc,
-            utils.shadow_cfg.get("far_plane"),
-        )
+        GL.glUniform1f(self.final_far_plane_loc, utils.shadow_cfg.get("far_plane"))
 
-        GL.glUniform1i(
-            self.final_soft_shadows_loc,
-            1 if utils.shadow_cfg.get("soft_shadows") else 0,
-        )
+        GL.glUniform1i(self.final_soft_shadows_loc, 1 if utils.shadow_cfg.get("soft_shadows") else 0)
 
         GL.glUniform1i(self.final_pcf_samples_loc, utils.shadow_cfg.get("pcf_samples"))
 
@@ -1366,29 +962,17 @@ class LightRenderer:
 
         for obj in opaque:
 
-            GL.glUniformMatrix4fv(
-                self.final_model_loc,
-                1,
-                GL.GL_TRUE,
-                obj.transform.matrix(),
-            )
+            GL.glUniformMatrix4fv(self.final_model_loc, 1, GL.GL_TRUE, obj.transform.matrix())
 
             GL.glUniform3f(self.final_object_color_loc, *obj.material.color)
 
-            GL.glUniform1f(
-                self.final_specular_strength_loc, obj.material.specular_strength
-            )
+            GL.glUniform1f(self.final_specular_strength_loc, obj.material.specular_strength)
 
             GL.glUniform1f(self.final_shininess_loc, obj.material.shininess)
 
-            GL.glUniform1f(
-                self.final_opacity_loc, getattr(obj.material, "opacity", 1.0)
-            )
+            GL.glUniform1f(self.final_opacity_loc, getattr(obj.material, "opacity", 1.0))
 
-            GL.glUniform1i(
-                self.final_double_sided_loc,
-                1 if getattr(obj.material, "double_sided", False) else 0,
-            )
+            GL.glUniform1i(self.final_double_sided_loc, 1 if getattr(obj.material, "double_sided", False) else 0)
 
             # Texture binding
             if obj.material.texture is not None:
@@ -1408,10 +992,7 @@ class LightRenderer:
 
             elif mode == "triplanar":
                 GL.glUniform1i(self.final_texture_mode_loc, 1)
-                GL.glUniform1f(
-                    self.final_triplanar_scale_loc,
-                    getattr(obj.material, "texture_scale_value"),
-                )
+                GL.glUniform1f(self.final_triplanar_scale_loc, getattr(obj.material, "texture_scale_value"))
 
             # Culling
             if getattr(obj.material, "double_sided", False):
@@ -1429,10 +1010,7 @@ class LightRenderer:
 
             cam_pos = player.position
 
-            transparent.sort(
-                key=lambda o: np.linalg.norm(o.transform.position - cam_pos),
-                reverse=True,
-            )
+            transparent.sort(key=lambda o: np.linalg.norm(o.transform.position - cam_pos), reverse=True)
 
             GL.glEnable(GL.GL_BLEND)
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
@@ -1440,29 +1018,17 @@ class LightRenderer:
 
             for obj in transparent:
 
-                GL.glUniformMatrix4fv(
-                    self.final_model_loc,
-                    1,
-                    GL.GL_TRUE,
-                    obj.transform.matrix(),
-                )
+                GL.glUniformMatrix4fv(self.final_model_loc, 1, GL.GL_TRUE, obj.transform.matrix())
 
                 GL.glUniform3f(self.final_object_color_loc, *obj.material.color)
 
-                GL.glUniform1f(
-                    self.final_specular_strength_loc, obj.material.specular_strength
-                )
+                GL.glUniform1f(self.final_specular_strength_loc, obj.material.specular_strength)
 
                 GL.glUniform1f(self.final_shininess_loc, obj.material.shininess)
 
-                GL.glUniform1f(
-                    self.final_opacity_loc, getattr(obj.material, "opacity", 1.0)
-                )
+                GL.glUniform1f(self.final_opacity_loc, getattr(obj.material, "opacity", 1.0))
 
-                GL.glUniform1i(
-                    self.final_double_sided_loc,
-                    1 if getattr(obj.material, "double_sided", False) else 0,
-                )
+                GL.glUniform1i(self.final_double_sided_loc, 1 if getattr(obj.material, "double_sided", False) else 0)
 
                 if obj.material.texture is not None:
                     GL.glActiveTexture(GL.GL_TEXTURE3)
@@ -1481,10 +1047,7 @@ class LightRenderer:
 
                 elif mode == "triplanar":
                     GL.glUniform1i(self.final_texture_mode_loc, 1)
-                    GL.glUniform1f(
-                        self.final_triplanar_scale_loc,
-                        getattr(obj.material, "texture_scale_value"),
-                    )
+                    GL.glUniform1f(self.final_triplanar_scale_loc, getattr(obj.material, "texture_scale_value"))
 
                 if getattr(obj.material, "double_sided", False):
                     GL.glDisable(GL.GL_CULL_FACE)
@@ -1501,8 +1064,6 @@ class LightRenderer:
         # Debug Grid (3D world space inside HDR FBO)
         # =========================
         if debug_renderer is not None:
-            debug_renderer.draw_debug_grid(
-                camera, screen_width / screen_height, size=100.0
-            )
+            debug_renderer.draw_debug_grid(camera, screen_width / screen_height, size=100.0)
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)

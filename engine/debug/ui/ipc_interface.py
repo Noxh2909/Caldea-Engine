@@ -1,14 +1,4 @@
-from PySide6.QtWidgets import (
-    QApplication,
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QLineEdit,
-    QComboBox,
-    QScrollArea,
-)
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QComboBox, QScrollArea
 from PySide6.QtGui import QPixmap, QCursor
 from PySide6.QtWidgets import QToolTip
 from PySide6.QtCore import Qt
@@ -73,17 +63,7 @@ class JsonValueControl(QWidget):
         clean_label = clean_label.split("[")[0]
 
         # Fields where stepping with < > does not make sense
-        no_step_fields = {
-            "texture_scale_mode",
-            "obj_name",
-            "name",
-            "double_sided",
-            "path",
-            "loop",
-            "mesh",
-            "gravity",
-            "glb_path",
-        }
+        no_step_fields = {"texture_scale_mode", "obj_name", "name", "double_sided", "path", "loop", "mesh", "gravity", "glb_path"}
 
         self.label = QLabel(clean_label)
         self.label.setFixedWidth(160)
@@ -92,8 +72,7 @@ class JsonValueControl(QWidget):
 
         self.minus_btn = QPushButton("<")
         self.minus_btn.setFixedSize(28, 28)
-        self.minus_btn.setStyleSheet(
-            """
+        self.minus_btn.setStyleSheet("""
 QPushButton {
     border-radius: 8px;
     border: 1px solid #444;
@@ -106,14 +85,12 @@ QPushButton:hover {
 QPushButton:pressed {
     background-color: #505050;
 }
-"""
-        )
+""")
 
         self.field = QLineEdit(self._format_value(value))
         self.field.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.field.setFixedSize(140, 28)
-        self.field.setStyleSheet(
-            """
+        self.field.setStyleSheet("""
 QLineEdit {
     border-radius: 10px;
     border: 1px solid #444;
@@ -124,13 +101,11 @@ QLineEdit {
 QLineEdit:focus {
     border: 1px solid #6aa9ff;
 }
-"""
-        )
+""")
 
         self.plus_btn = QPushButton(">")
         self.plus_btn.setFixedSize(28, 28)
-        self.plus_btn.setStyleSheet(
-            """
+        self.plus_btn.setStyleSheet("""
 QPushButton {
     border-radius: 8px;
     border: 1px solid #444;
@@ -143,8 +118,7 @@ QPushButton:hover {
 QPushButton:pressed {
     background-color: #505050;
 }
-"""
-        )
+""")
 
         self.field.editingFinished.connect(self._commit)
 
@@ -175,14 +149,12 @@ QPushButton:pressed {
         self.info_label.setAttribute(Qt.WidgetAttribute.WA_AlwaysShowToolTips, True)
         self.info_label.setMouseTracking(True)
         self.info_label.setToolTipDuration(5000)
-        self.info_label.setStyleSheet(
-            """
+        self.info_label.setStyleSheet("""
 QLabel {
     color: #8aaaff;
     font-weight: bold;
 }
-"""
-        )
+""")
 
         # Tooltip texts per field
         tooltip_map = {
@@ -214,9 +186,7 @@ QLabel {
 
         # Force tooltip display on hover (macOS fix)
         if self.info_text:
-            self.info_label.enterEvent = lambda event: QToolTip.showText(
-                QCursor.pos(), self.info_text or ""
-            )
+            self.info_label.enterEvent = lambda event: QToolTip.showText(QCursor.pos(), self.info_text or "")
 
         # Always reserve icon space so layout never shifts
         layout.addWidget(self.info_label)
@@ -331,9 +301,7 @@ class DebugInterface(QWidget):
         self.setLayout(main_layout)
 
         # Global tooltip styling
-        self.setStyleSheet(
-            self.styleSheet()
-            + """
+        self.setStyleSheet(self.styleSheet() + """
 QToolTip {
     background-color: #2a2a2a;
     color: white;
@@ -342,8 +310,7 @@ QToolTip {
     margin: 0px;
     border-radius: 6px;
 }
-"""
-        )
+""")
 
         # ------------------------------------------------------------
         # TOP ICON
@@ -358,12 +325,7 @@ QToolTip {
             # Only downscale if the icon is larger than the target size
             target_size = 160
             if pix.height() > target_size or pix.width() > target_size:
-                pix = pix.scaled(
-                    target_size,
-                    target_size,
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation,
-                )
+                pix = pix.scaled(target_size, target_size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
 
             icon_label.setPixmap(pix)
 
@@ -383,9 +345,7 @@ QToolTip {
         # Scene title above dropdown
         scene_label = QLabel("Scene:")
         scene_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        scene_label.setStyleSheet(
-            "font-size: 16px; font-weight: bold; margin-bottom: 2px;"
-        )
+        scene_label.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 2px;")
         main_layout.addWidget(scene_label)
 
         # Dropdown for objects
@@ -408,17 +368,14 @@ QToolTip {
         self.scroll_area.setWidget(self.scroll_widget)
 
         # prevent horizontal squeezing and keep layout stable
-        self.scroll_area.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         main_layout.addWidget(self.scroll_area)
 
         # Save button
         self.save_button = QPushButton("Save Config")
         self.save_button.setFixedHeight(34)
-        self.save_button.setStyleSheet(
-            """
+        self.save_button.setStyleSheet("""
 QPushButton {
     border-radius: 12px;
     border: 1px solid #444;
@@ -432,8 +389,7 @@ QPushButton:hover {
 QPushButton:pressed {
     background-color: #505050;
 }
-"""
-        )
+""")
         self.save_button.clicked.connect(self._save_all)
         main_layout.addWidget(self.save_button)
 
@@ -562,12 +518,7 @@ QPushButton:pressed {
     def _save_all(self):
         data = self.loaded_data[WORLD_PATH]
 
-        formatted = json.dumps(
-            data,
-            indent=2,
-            ensure_ascii=False,
-            separators=(", ", ": "),
-        )
+        formatted = json.dumps(data, indent=2, ensure_ascii=False, separators=(", ", ": "))
 
         # collapse numeric arrays into single line
         def collapse_array(match):
@@ -576,12 +527,7 @@ QPushButton:pressed {
             values = re.sub(r"\s+", " ", values).strip()
             return f"[{values}]"
 
-        formatted = re.sub(
-            r"\[\s*\n\s*([0-9\.\-,\s]+?)\s*\n\s*\]",
-            collapse_array,
-            formatted,
-            flags=re.MULTILINE,
-        )
+        formatted = re.sub(r"\[\s*\n\s*([0-9\.\-,\s]+?)\s*\n\s*\]", collapse_array, formatted, flags=re.MULTILINE)
 
         formatted += "\n"
 

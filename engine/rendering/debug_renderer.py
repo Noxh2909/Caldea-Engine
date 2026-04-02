@@ -66,13 +66,9 @@ class DebugRenderer:
 
     def _compile_shaders(self) -> None:
         """Compile debug and grid shader programs."""
-        self.debug_program = _utils.link_program(
-            DEBUG_VERTEX_SHADER_SRC, DEBUG_FRAGMENT_SHADER_SRC
-        )
+        self.debug_program = _utils.link_program(DEBUG_VERTEX_SHADER_SRC, DEBUG_FRAGMENT_SHADER_SRC)
 
-        self.grid_program = _utils.link_program(
-            PLANE_VERTEX_SHADER_SRC, PLANE_FRAGMENT_SHADER_SRC
-        )
+        self.grid_program = _utils.link_program(PLANE_VERTEX_SHADER_SRC, PLANE_FRAGMENT_SHADER_SRC)
 
     def _cache_uniform_locations(self) -> None:
         """Cache frequently used uniform locations."""
@@ -131,9 +127,7 @@ class DebugRenderer:
     # HUD Rendering
     # ============================================================
 
-    def render_debug_hud(
-        self, clock, player, obj, obj_pos, obj_scale, extra_lines=None, tranfrom =None
-    ) -> None:
+    def render_debug_hud(self, clock, player, obj, obj_pos, obj_scale, extra_lines=None, tranfrom=None) -> None:
         """
         Render 2D debug overlay.
 
@@ -159,9 +153,7 @@ class DebugRenderer:
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.debug_tex)
 
         # Always show FPS
-        lines = [
-            f"FPS: {clock.get_fps():.1f}"
-        ]
+        lines = [f"FPS: {clock.get_fps():.1f}"]
 
         # Only show extended debug info when debug mode is enabled
         if self.debug_enabled:
@@ -169,13 +161,15 @@ class DebugRenderer:
             pitch = obj.get("pitch", 0.0)
             roll = obj.get("roll", 0.0)
 
-            lines.extend([
-                f"Player Pos: {player.position[0]:.2f}, {player.position[1]:.2f}, {player.position[2]:.2f}",
-                f"Controlled object: {obj['target']}",
-                f"Object Pos: {obj_pos[0]:.2f}, {obj_pos[1]:.2f}, {obj_pos[2]:.2f}",
-                f"Object Scale: {obj_scale[0]:.2f}, {obj_scale[1]:.2f}, {obj_scale[2]:.2f}",
-                f"Yaw: {math.degrees(yaw):.1f}°, Pitch: {math.degrees(pitch):.1f}°, Roll: {math.degrees(roll):.1f}°",
-            ])
+            lines.extend(
+                [
+                    f"Player Pos: {player.position[0]:.2f}, {player.position[1]:.2f}, {player.position[2]:.2f}",
+                    f"Controlled object: {obj['target']}",
+                    f"Object Pos: {obj_pos[0]:.2f}, {obj_pos[1]:.2f}, {obj_pos[2]:.2f}",
+                    f"Object Scale: {obj_scale[0]:.2f}, {obj_scale[1]:.2f}, {obj_scale[2]:.2f}",
+                    f"Yaw: {math.degrees(yaw):.1f}°, Pitch: {math.degrees(pitch):.1f}°, Roll: {math.degrees(roll):.1f}°",
+                ]
+            )
 
         if extra_lines:
             lines.append("-----")
@@ -210,17 +204,7 @@ class DebugRenderer:
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
 
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D,
-            0,
-            GL.GL_RGBA,
-            surf.get_width(),
-            surf.get_height(),
-            0,
-            GL.GL_RGBA,
-            GL.GL_UNSIGNED_BYTE,
-            data,
-        )
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, surf.get_width(), surf.get_height(), 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, data)
 
         return surf.get_width(), surf.get_height()
 
@@ -243,9 +227,7 @@ class DebugRenderer:
         GL.glUseProgram(self.grid_program)
 
         GL.glUniformMatrix4fv(self.grid_u_view, 1, GL.GL_TRUE, camera.get_view_matrix())
-        GL.glUniformMatrix4fv(
-            self.grid_u_proj, 1, GL.GL_TRUE, camera.get_projection_matrix(aspect)
-        )
+        GL.glUniformMatrix4fv(self.grid_u_proj, 1, GL.GL_TRUE, camera.get_projection_matrix(aspect))
         GL.glUniformMatrix4fv(self.grid_u_model, 1, GL.GL_TRUE, self.model)
 
         GL.glBindVertexArray(self.grid_vao)
@@ -278,25 +260,17 @@ class DebugRenderer:
 
         GL.glBindVertexArray(vao)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo)
-        GL.glBufferData(
-            GL.GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL.GL_STATIC_DRAW
-        )
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL.GL_STATIC_DRAW)
 
         stride = 8 * 4
         GL.glEnableVertexAttribArray(0)
-        GL.glVertexAttribPointer(
-            0, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(0)
-        )
+        GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(0))
 
         GL.glEnableVertexAttribArray(1)
-        GL.glVertexAttribPointer(
-            1, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(12)
-        )
+        GL.glVertexAttribPointer(1, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(12))
 
         GL.glEnableVertexAttribArray(2)
-        GL.glVertexAttribPointer(
-            2, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(24)
-        )
+        GL.glVertexAttribPointer(2, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(24))
 
         GL.glBindVertexArray(0)
 

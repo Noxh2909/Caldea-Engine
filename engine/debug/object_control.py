@@ -59,7 +59,7 @@ class DebugObjectController:
                     current_deg = math.degrees(target_transform.roll)
                     snapped = round(current_deg / 90.0) * 90.0
                     target_transform.roll = math.radians(snapped)
-                    
+
                 if hasattr(target_transform, "pitch"):
                     current_deg = math.degrees(target_transform.pitch)
                     snapped = round(current_deg / 90.0) * 90.0
@@ -95,7 +95,7 @@ class DebugObjectController:
                 # Rotate roll with key 2
                 if keys[pygame.K_2] and hasattr(target_transform, "roll"):
                     target_transform.roll += math.radians(self.rotation_speed_deg)
-                    
+
                 if keys[pygame.K_3] and hasattr(target_transform, "pitch"):
                     target_transform.pitch += math.radians(self.rotation_speed_deg)
 

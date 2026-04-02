@@ -8,16 +8,7 @@ class Cloth:
     Debug-render friendly (provides line segments for gizmo rendering).
     """
 
-    def __init__(
-        self,
-        origin=(0, 5, 0),
-        width=4.0,
-        height=4.0,
-        segments_x=10,
-        segments_y=10,
-        gravity=(0, -9.81, 0),
-        wind_strength=1.0,
-    ):
+    def __init__(self, origin=(0, 5, 0), width=4.0, height=4.0, segments_x=10, segments_y=10, gravity=(0, -9.81, 0), wind_strength=1.0):
         self.origin = np.array(origin, dtype=np.float32)
         self.width = width
         self.height = height
@@ -111,13 +102,9 @@ class Cloth:
             wx = np.sin(t * 2.0 + y * 1.5 + phase) * 0.5 * self.wind_strength
             wz = np.cos(t * 1.5 + x * 1.2 + phase) * 0.5 * self.wind_strength
 
-            self.points[i][0] = (
-                current[0] + velocity[0] + (self.gravity[0] + wx) * dt * dt
-            )
+            self.points[i][0] = current[0] + velocity[0] + (self.gravity[0] + wx) * dt * dt
             self.points[i][1] = current[1] + velocity[1] + self.gravity[1] * dt * dt
-            self.points[i][2] = (
-                current[2] + velocity[2] + (self.gravity[2] + wz) * dt * dt
-            )
+            self.points[i][2] = current[2] + velocity[2] + (self.gravity[2] + wz) * dt * dt
 
         # Solve constraints (optimized distance computation)
         for _ in range(iterations):
@@ -126,9 +113,7 @@ class Cloth:
                 p2 = self.points[i2]
 
                 delta = p2 - p1
-                dist_sq = (
-                    delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2]
-                )
+                dist_sq = delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2]
 
                 if dist_sq == 0.0:
                     continue

@@ -36,9 +36,7 @@ def initialize():
 
     pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, 3)
     pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, 3)
-    pygame.display.gl_set_attribute(
-        pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE
-    )
+    pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE)
 
     WIDTH, HEIGHT = 1400, 800
     pygame.display.set_mode((WIDTH, HEIGHT), pygame.OPENGL | pygame.DOUBLEBUF)
@@ -46,10 +44,10 @@ def initialize():
 
     pygame.mouse.set_visible(False)
     pygame.event.set_grab(True)
-    pygame.mouse.get_rel()  
+    pygame.mouse.get_rel()
 
     version = GL.glGetString(GL.GL_VERSION)
-    if version: 
+    if version:
         print("OpenGL:", version.decode())
 
     # Core Engine Objects
@@ -62,7 +60,7 @@ def initialize():
     debug_renderer = DebugRenderer()
     audio = AudioEngine()
     world = World(audio, "engine/world_gen.json")
-    
+
     # ------------------------------------------------------------
     # Test objects: spawn 2000 cubes at height 15
     # ------------------------------------------------------------
@@ -77,7 +75,7 @@ def initialize():
     #         obj_name="test_cube",
     #     )
     #     world.objects.append(obj)
-        
+
     gizmo = DebugGizmo()
     debug_controller = DebugObjectController()
     debug_ui = UIManager()
@@ -92,20 +90,15 @@ def initialize():
     # ------------------------------------------------------------
 
     # Static Physics Plane
-    plane_game_object = GameObject(
-        mesh=None,
-        transform=Transform(position=(0.0, 0.05, 0.0)),
-        material=None,
-        collider=AABBCollider(size=(100.0, 1.0, 100.0)),
-    )
+    plane_game_object = GameObject(mesh=None, transform=Transform(position=(0.0, 0.05, 0.0)), material=None, collider=AABBCollider(size=(100.0, 1.0, 100.0)))
     physics.add_static(plane_game_object)
     plane_mesh = Mesh(plane_vertices)
 
     # Register World Colliders
-    for obj in world.objects:   
+    for obj in world.objects:
         if obj.collider is not None:
             physics.add_static(obj)
-            
+
     for obj in world.objects:
         if getattr(obj, "use_gravity", False):
             physics.add_dynamic(obj)
@@ -113,7 +106,7 @@ def initialize():
     # Scene Object List (Render Layer)
     scene_objects: list[GameObject] = []
     for obj in world.objects:
-        if obj.mesh is not None and obj.material is not None:
+        if obj.mesh is not None:
             scene_objects.append(obj)
 
     # Debug UI Object Name List
@@ -271,14 +264,7 @@ def main_loop(engine):
         engine["renderer"].render_shadow_pass(engine["world"].objects, avatars=[])
         engine["renderer"].render_ssao_pass(engine["camera"], visible_objects)
 
-        engine["renderer"].render_final_pass(
-            engine["player"],
-            engine["camera"],
-            visible_objects,
-            engine["WIDTH"],
-            engine["HEIGHT"],
-            debug_renderer=engine["debug_renderer"],
-        )
+        engine["renderer"].render_final_pass(engine["player"], engine["camera"], visible_objects, engine["WIDTH"], engine["HEIGHT"], debug_renderer=engine["debug_renderer"])
 
         engine["renderer"].render_volumetric_pass(engine["camera"])
         engine["renderer"].render_bloom_pass()
@@ -297,9 +283,7 @@ def main_loop(engine):
 
         current_name = "None"
         if engine["debug_controller"].targets:
-            current_obj = engine["debug_controller"].targets[
-                engine["debug_controller"].current_index
-            ]
+            current_obj = engine["debug_controller"].targets[engine["debug_controller"].current_index]
             current_name = getattr(current_obj, "obj_name", None)
             if not current_name:
                 current_name = type(current_obj).__name__
@@ -314,29 +298,13 @@ def main_loop(engine):
             yaw = target_transform.yaw
             roll = target_transform.roll
 
-        engine["debug_renderer"].render_debug_hud(
-            engine["clock"],
-            engine["player"],
-            {
-                "target": current_name,
-                "yaw": yaw,
-                "pitch": pitch,
-                "roll": roll,
-            },
-            object_position,
-            object_scale,
-        )
+        engine["debug_renderer"].render_debug_hud(engine["clock"], engine["player"], {"target": current_name, "yaw": yaw, "pitch": pitch, "roll": roll}, object_position, object_scale)
 
         # ------------------------------------------------------------
         # Collider Gizmos
         # ------------------------------------------------------------
         if engine["gizmo"].enabled:
-            vp = (
-                engine["camera"].get_projection_matrix(
-                    engine["WIDTH"] / engine["HEIGHT"]
-                )
-                @ engine["camera"].get_view_matrix()
-            )
+            vp = engine["camera"].get_projection_matrix(engine["WIDTH"] / engine["HEIGHT"]) @ engine["camera"].get_view_matrix()
 
             for obj in engine["world"].objects:
                 if hasattr(obj, "collider") and obj.collider is not None:
@@ -357,9 +325,7 @@ def main_loop(engine):
 
                     selected_obj = None
                     if engine["debug_controller"].targets:
-                        selected_obj = engine["debug_controller"].targets[
-                            engine["debug_controller"].current_index
-                        ]
+                        selected_obj = engine["debug_controller"].targets[engine["debug_controller"].current_index]
 
                     if obj is selected_obj:
                         color = (1, 0, 0)

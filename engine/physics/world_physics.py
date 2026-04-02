@@ -78,11 +78,7 @@ class PhysicsWorld:
                 min_v, max_v = static.collider.get_bounds(static.transform)
 
                 # Full AABB vs AABB overlap test
-                overlap = (
-                    obj_min[0] <= max_v[0] and obj_max[0] >= min_v[0] and
-                    obj_min[1] <= max_v[1] and obj_max[1] >= min_v[1] and
-                    obj_min[2] <= max_v[2] and obj_max[2] >= min_v[2]
-                )
+                overlap = obj_min[0] <= max_v[0] and obj_max[0] >= min_v[0] and obj_min[1] <= max_v[1] and obj_max[1] >= min_v[1] and obj_min[2] <= max_v[2] and obj_max[2] >= min_v[2]
 
                 if overlap:
                     ground_y = max_v[1]
@@ -128,41 +124,19 @@ class PhysicsWorld:
             # -------------------------
             # X axis resolution
             # -------------------------
-            if (
-                min_v[1] <= player.position[1] <= max_v[1] + player.height
-                and min_v[2] - player.radius
-                <= player.position[2]
-                <= max_v[2] + player.radius
-            ):
-                if (
-                    player.position[0] > max_v[0]
-                    and player.position[0] - player.radius < max_v[0]
-                ):
+            if min_v[1] <= player.position[1] <= max_v[1] + player.height and min_v[2] - player.radius <= player.position[2] <= max_v[2] + player.radius:
+                if player.position[0] > max_v[0] and player.position[0] - player.radius < max_v[0]:
                     player.position[0] = max_v[0] + player.radius
-                elif (
-                    player.position[0] < min_v[0]
-                    and player.position[0] + player.radius > min_v[0]
-                ):
+                elif player.position[0] < min_v[0] and player.position[0] + player.radius > min_v[0]:
                     player.position[0] = min_v[0] - player.radius
 
             # -------------------------
             # Z axis resolution
             # -------------------------
-            if (
-                min_v[1] <= player.position[1] <= max_v[1] + player.stand_height
-                and min_v[0] - player.radius
-                <= player.position[0]
-                <= max_v[0] + player.radius
-            ):
-                if (
-                    player.position[2] > max_v[2]
-                    and player.position[2] - player.radius < max_v[2]
-                ):
+            if min_v[1] <= player.position[1] <= max_v[1] + player.stand_height and min_v[0] - player.radius <= player.position[0] <= max_v[0] + player.radius:
+                if player.position[2] > max_v[2] and player.position[2] - player.radius < max_v[2]:
                     player.position[2] = max_v[2] + player.radius
-                elif (
-                    player.position[2] < min_v[2]
-                    and player.position[2] + player.radius > min_v[2]
-                ):
+                elif player.position[2] < min_v[2] and player.position[2] + player.radius > min_v[2]:
                     player.position[2] = min_v[2] - player.radius
 
             # -------------------------
@@ -178,12 +152,8 @@ class PhysicsWorld:
                 was_above
                 and is_crossing_down
                 and player.velocity_y <= 0.0
-                and min_v[0] - player.radius + EDGE_EPS
-                <= player.position[0]
-                <= max_v[0] + player.radius - EDGE_EPS
-                and min_v[2] - player.radius + EDGE_EPS
-                <= player.position[2]
-                <= max_v[2] + player.radius - EDGE_EPS
+                and min_v[0] - player.radius + EDGE_EPS <= player.position[0] <= max_v[0] + player.radius - EDGE_EPS
+                and min_v[2] - player.radius + EDGE_EPS <= player.position[2] <= max_v[2] + player.radius - EDGE_EPS
             ):
                 player.position[1] = ground_y
                 player.velocity_y = 0.0

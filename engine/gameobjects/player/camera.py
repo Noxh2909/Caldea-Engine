@@ -43,11 +43,7 @@ class Camera:
             target[1] += self.player.height * self.eye_height_factor
 
             # desired camera position behind the player
-            desired_eye = (
-                target
-                - self.player.front * self.distance
-                + self.player.up * self.height_offset
-            )
+            desired_eye = target - self.player.front * self.distance + self.player.up * self.height_offset
 
             # camera collision via raycast
             hit = None
@@ -81,7 +77,6 @@ class Camera:
         view = self.get_view_matrix()
         proj = self.get_projection_matrix(aspect)
         return proj @ view
-
 
     def get_frustum_planes(self, aspect: float):
         """

@@ -5,15 +5,7 @@ from gameobjects.vertec import cube_vertices, sphere_vertices
 
 
 class Mesh:
-    def __init__(
-        self,
-        vertices: np.ndarray | None = None,
-        indices: np.ndarray | None = None,
-        *,
-        positions: np.ndarray | None = None,
-        normals: np.ndarray | None = None,
-        uvs: np.ndarray | None = None,
-    ):
+    def __init__(self, vertices: np.ndarray | None = None, indices: np.ndarray | None = None, *, positions: np.ndarray | None = None, normals: np.ndarray | None = None, uvs: np.ndarray | None = None):
         """
         Static mesh implementation (no skeletal animation).
 
@@ -23,13 +15,9 @@ class Mesh:
 
         # --- Build interleaved vertex buffer ---
         if vertices is None:
-            assert (
-                positions is not None and normals is not None and uvs is not None
-            ), "positions, normals and uvs are required"
+            assert positions is not None and normals is not None and uvs is not None, "positions, normals and uvs are required"
 
-            assert (
-                positions.shape[0] == normals.shape[0] == uvs.shape[0]
-            ), "positions/normals/uvs vertex count mismatch"
+            assert positions.shape[0] == normals.shape[0] == uvs.shape[0], "positions/normals/uvs vertex count mismatch"
 
             vcount = positions.shape[0]
 
@@ -64,41 +52,28 @@ class Mesh:
 
         # VBO
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
-        GL.glBufferData(
-            GL.GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL.GL_DYNAMIC_DRAW
-        )
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL.GL_DYNAMIC_DRAW)
 
         self._vertex_buffer = vertices.copy()
 
         # EBO (optional)
         if self.has_indices and indices is not None:
             GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, self.ebo)
-            GL.glBufferData(
-                GL.GL_ELEMENT_ARRAY_BUFFER,
-                indices.nbytes,
-                indices.astype(np.uint32),
-                GL.GL_STATIC_DRAW,
-            )
+            GL.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices.astype(np.uint32), GL.GL_STATIC_DRAW)
 
         stride = 8 * 4
 
         # position (location = 0)
         GL.glEnableVertexAttribArray(0)
-        GL.glVertexAttribPointer(
-            0, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(0)
-        )
+        GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(0))
 
         # normal (location = 1)
         GL.glEnableVertexAttribArray(1)
-        GL.glVertexAttribPointer(
-            1, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(3 * 4)
-        )
+        GL.glVertexAttribPointer(1, 3, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(3 * 4))
 
         # uv (location = 2)
         GL.glEnableVertexAttribArray(2)
-        GL.glVertexAttribPointer(
-            2, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(6 * 4)
-        )
+        GL.glVertexAttribPointer(2, 2, GL.GL_FLOAT, GL.GL_FALSE, stride, ctypes.c_void_p(6 * 4))
 
         GL.glBindVertexArray(0)
 
@@ -109,9 +84,7 @@ class Mesh:
         """
         GL.glBindVertexArray(self.vao)
         if self.has_indices:
-            GL.glDrawElements(
-                GL.GL_TRIANGLES, self.index_count, GL.GL_UNSIGNED_INT, None
-            )
+            GL.glDrawElements(GL.GL_TRIANGLES, self.index_count, GL.GL_UNSIGNED_INT, None)
         else:
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.vertex_count)
         GL.glBindVertexArray(0)
@@ -136,9 +109,7 @@ class Mesh:
 
         # Single GPU upload
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
-        GL.glBufferSubData(
-            GL.GL_ARRAY_BUFFER, 0, self._vertex_buffer.nbytes, self._vertex_buffer
-        )
+        GL.glBufferSubData(GL.GL_ARRAY_BUFFER, 0, self._vertex_buffer.nbytes, self._vertex_buffer)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
 
     @property

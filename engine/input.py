@@ -18,17 +18,7 @@ class InputState:
 
         :param self: The object itself
         """
-        self.actions = {
-            "forward": False,
-            "backward": False,
-            "left": False,
-            "right": False,
-            "sprint": False,
-            "crouch_hold": False,
-            "crouch_tap": False,
-            "jump": False,
-            "toggle_third_person": False,
-        }
+        self.actions = {"forward": False, "backward": False, "left": False, "right": False, "sprint": False, "crouch_hold": False, "crouch_tap": False, "jump": False, "toggle_third_person": False}
 
         # previous key states for edge detection
         self._prev_jump = False
@@ -64,9 +54,7 @@ class InputState:
         self._prev_jump = jump_now
 
         toggle_now = keys[pygame.K_v]
-        self.actions["toggle_third_person"] = (
-            toggle_now and not self._prev_toggle_third_person
-        )
+        self.actions["toggle_third_person"] = toggle_now and not self._prev_toggle_third_person
         self._prev_toggle_third_person = toggle_now
 
         return self.actions

@@ -4,13 +4,11 @@
     "threshold": 1.2,
     "intensity": 0.03
   },
-
   "ssao": {
     "enabled": true,
     "radius": 0.8,
     "bias": 0.01
   },
-
   "shadow": {
     "resolution": 1024,
     "near_plane": 0.1,
@@ -19,7 +17,6 @@
     "pcf_samples": 16,
     "pcf_radius": 0.05
   },
-
   "volumetric": {
     "enabled": true,
     "samples": 16,

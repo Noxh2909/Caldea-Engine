@@ -29,10 +29,7 @@ class DebugGizmo:
         temp_vao = GL.glGenVertexArrays(1)
         GL.glBindVertexArray(temp_vao)
 
-        self.shader = shaders.compileProgram(
-            shaders.compileShader(vertex_src, GL.GL_VERTEX_SHADER),
-            shaders.compileShader(fragment_src, GL.GL_FRAGMENT_SHADER),
-        )
+        self.shader = shaders.compileProgram(shaders.compileShader(vertex_src, GL.GL_VERTEX_SHADER), shaders.compileShader(fragment_src, GL.GL_FRAGMENT_SHADER))
         GL.glBindVertexArray(0)
 
         self.vao = GL.glGenVertexArrays(1)
@@ -52,9 +49,7 @@ class DebugGizmo:
         GL.glBindVertexArray(self.vao)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
 
-        GL.glBufferData(
-            GL.GL_ARRAY_BUFFER, vertices.astype(np.float32), GL.GL_DYNAMIC_DRAW
-        )
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, vertices.astype(np.float32), GL.GL_DYNAMIC_DRAW)
 
         GL.glEnableVertexAttribArray(0)
         GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, False, 0, None)

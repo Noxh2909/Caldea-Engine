@@ -23,12 +23,7 @@ class IPCInterface(QWidget):
                 full_path = f"{current_path}.{key}" if current_path else key
 
                 if isinstance(value, (int, float)):
-                    self._create_numeric_control(
-                        full_path,
-                        value,
-                        file_path,
-                        root,
-                    )
+                    self._create_numeric_control(full_path, value, file_path, root)
                 else:
                     self._build_controls(value, file_path, root, full_path)
 
@@ -41,10 +36,7 @@ class IPCInterface(QWidget):
         def on_change(new_value):
             self._update_json_by_path(root, full_path, new_value)
 
-            self.ipc.send({
-                "path": full_path,
-                "value": new_value
-            })
+            self.ipc.send({"path": full_path, "value": new_value})
 
         control = JsonValueControl(full_path, float(value), on_change)
         self.container_layout.addWidget(control)

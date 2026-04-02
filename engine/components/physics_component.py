@@ -26,32 +26,17 @@ class ClothComponent:
 
     def start(self):
         if self.game_object is None:
-            raise RuntimeError(
-                "ClothComponent must be attached to a GameObject before start()."
-            )
+            raise RuntimeError("ClothComponent must be attached to a GameObject before start().")
         if self.game_object.transform is None:
             raise RuntimeError("GameObject must have a transform component.")
 
         origin = self.game_object.transform.position.copy()
 
-        self.cloth = Cloth(
-            origin=origin,
-            width=self.width,
-            height=self.height,
-            segments_x=self.segments_x,
-            segments_y=self.segments_y,
-            gravity=self.gravity,
-            wind_strength=self.wind_rate,
-        )
+        self.cloth = Cloth(origin=origin, width=self.width, height=self.height, segments_x=self.segments_x, segments_y=self.segments_y, gravity=self.gravity, wind_strength=self.wind_rate)
 
         vertices, normals, uvs, indices = self.cloth.build_mesh_data()
 
-        self.game_object.mesh = Mesh(
-            positions=vertices,
-            normals=normals,
-            uvs=uvs,
-            indices=indices,
-        )
+        self.game_object.mesh = Mesh(positions=vertices, normals=normals, uvs=uvs, indices=indices)
 
     def update(self, dt):
         if self.game_object is None:
